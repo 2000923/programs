@@ -314,3 +314,5 @@ config
 
 # Dependencias para terraform
 .terraform*
+*.backup
+*.tfstate*
