@@ -319,3 +319,4 @@ config
 
 # llaves generadas para ssh
 *.pub
+private.yml
