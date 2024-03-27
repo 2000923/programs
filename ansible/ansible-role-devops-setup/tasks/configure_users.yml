@@ -1,0 +1,222 @@
+---
+- name: Block to configuration repo
+  become: false
+  block:
+    - name: Configure git in localhost
+      ansible.builtin.shell: |
+        set -o pipefail
+        git config --global user.email "{{ git_user_email }}"
+        git config --global user.name "{{ git_user_name }}"
+      register: configure_git
+      changed_when: configure_git.rc != 0
+      args:
+        executable: /bin/bash
+      ignore_errors: true
+
+    - name: Create ~/.local/share/fonts
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "~/.local/share/fonts"
+
+    - name: Download hacker font
+      ansible.builtin.unarchive:
+        src: "{{ hk_font_url }}"
+        dest: ~/.local/share/fonts/
+        remote_src: true
+
+    - name: Configure the hacker nerd fonts
+      ansible.builtin.shell: |
+        set -o pipefail
+        cd ~/.local/share/fonts && curl -fLO "{{ droid_font_url }}"
+      register: nerd_fonts
+      changed_when: nerd_fonts.rc != 0
+      args:
+        chdir: /tmp
+        executable: /bin/bash
+
+    - name: Update cache of fonts
+      ansible.builtin.shell: |
+        set -o pipefail
+        fc-cache -f -v
+      register: fc_cache
+      changed_when: fc_cache.rc != 0
+      args:
+        executable: /bin/bash
+
+    - name: Clone a repo in the separate directoryfisher install craftzdog
+      ansible.builtin.git:
+        repo: https://github.com/2000923/dotfiles-public.git
+        dest: /tmp/ansible-examples
+        update: false
+        version: main
+
+    - name: Copy the directories from remote server
+      ansible.builtin.copy:
+        src: /tmp/ansible-examples/.config/
+        dest: ~/.config/.
+        mode: "0755"
+        remote_src: "{{ true if local is not defined else false }}"
+
+    - name: Clone a repo the packer nvim in my local
+      ansible.builtin.git:
+        repo: https://github.com/wbthomason/packer.nvim
+        dest: "~/.local/share/nvim/site/pack/packer/start/packer.nvim"
+        update: false
+        version: master
+
+    - name: Change config the fish to exa
+      ansible.builtin.lineinfile:
+        path: "~/.config/fish/config-linux.fish"
+        regexp: "^alias ll*"
+        line: 'alias ll "exa -l -g --icons -a -s modified -h"'
+        state: present
+
+    #    - name: Comment the value in file
+    #      ansible.builtin.lineinfile:
+    #        path: ~/.config/fish/functions/fish_user_key_bindings.fish
+    #        regexp: '(^fzf_configure_bindings.*)'
+    #        replace: '# \1'
+    #        mode: "0644"
+
+    - name: Install plugins for nvim
+      community.general.npm:
+        name: "{{ item }}"
+        path: /home/{{ os_user }}
+        global: false
+      loop: "{{ npm_packages }}"
+
+    - name: Install packages complements for nvim
+      ansible.builtin.pip:
+        name: "{{ item }}"
+        executable: pip3
+      loop: "{{ pip_packages }}"
+
+    #    - name: Configure servers for autocomplete
+    #      ansible.builtin.include_tasks:
+    #        file: configure_programs.yml
+
+    - name: Copy template the init.lua
+      ansible.builtin.template:
+        src: init.j2
+        dest: "~/.config/nvim/init.lua"
+        mode: "0644"
+
+    - name: Copy file config-linux.fish in remote server
+      ansible.builtin.template:
+        src: config-linux.j2
+        dest: "~/.config/fish/config-linux.fish"
+        mode: "0755"
+
+    - name: Install fisher
+      ansible.builtin.shell: |
+        set -o pipefail
+        curl -sL {{ fisher_url }} | source && fisher install jorgebucaran/fisher
+      register: fisher_std
+      changed_when: fisher_std.rc != 0
+      args:
+        executable: /usr/bin/fish
+
+    - name: Install z by fisher
+      ansible.builtin.shell: |
+        fisher install jethrokuan/z
+      register: fisher_std
+      changed_when: fisher_std.rc != 0
+      args:
+        executable: /usr/bin/fish
+
+    - name: Install patrickf1/fzf.fish
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          fisher install patrickf1/fzf.fish
+      register: patrickf1
+      changed_when: patrickf1.rc !=0
+      args:
+        executable: /usr/bin/fish
+
+    - name: Update install fisher
+      ansible.builtin.shell: |
+        fisher update
+      register: fisher_update
+      changed_when: fisher_update.rc != 0
+      args:
+        executable: /usr/bin/fish
+
+    - name: Install neovim with gem
+      ansible.builtin.command:
+        cmd: gem install neovim
+      register: gem_packages
+      changed_when: gem_packages.rc != 0
+      become: true
+
+    - name: Execute the packer install for plugins
+      ansible.builtin.raw: |
+        nvim --headless -c 'redir >> /tmp/nvim.log' -c 'autocmd User PackerComplete quitall' -c PackerSync
+      register: autocmd_packercomplete
+      changed_when: autocmd_packercomplete.rc != 0
+
+    - name: Execute the packer install for plugins
+      ansible.builtin.raw: |
+        nvim --headless -c 'redir >> /tmp/nvim.log' -c 'MasonUpdate' -c 'quitall'
+      register: mason_update
+      changed_when: mason_update.rc != 0
+
+    - name: Install tree-sitter bash in programs
+      ansible.builtin.raw: |
+        nvim --headless -c 'redir >> /tmp/nvim.log' -c 'MasonInstall shellcheck ansible-language-server ansible-lint black mypy pyright' -c 'quitall'
+      register: mason_programs
+      changed_when: mason_programs.rc != 0
+
+    - name: Install tree-sitter bash in programs
+      ansible.builtin.raw: |
+        nvim --headless -c 'redir >> /tmp/nvim.log' -c 'TSInstall python bash' -c 'quitall'
+      register: tsintall_programs
+      changed_when: tsintall_programs.rc != 0
+
+    - name: Create the directory to save ansible.cfg file
+      ansible.builtin.file:
+        path: "~/data"
+        state: directory
+        mode: "0755"
+
+    - name: Copy file ansible.j2 template
+      ansible.builtin.template:
+        src: ansible.j2
+        dest: ~/data/ansible.cfg
+        owner: "{{ os_user }}"
+        mode: "0644"
+
+    - name: Configure cpan module
+      ansible.builtin.command:
+        cmd: echo yes | cpan
+      register: cpan_value
+      changed_when: cpan_value.rc != 0
+
+    - name: Install cpan module with perl
+      ansible.builtin.shell:
+        cmd: |
+          cpanm --local-lib=~/perl5 local::lib && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
+      register: cpan_local_lib
+      changed_when: cpan_local_lib.rc != 0
+      args:
+        executable: /bin/bash
+
+    - name: Install plugins for vagrant
+      ansible.builtin.command:
+        cmd: vagrant plugin install "{{ vagrant[ansible_distribution].plugin }}"
+      register: vagrant_plugins
+      changed_when: vagrant_plugins.rc != 0
+
+    - name: Install network vboxnet0 in local
+      ansible.builtin.shell: |
+        set -o pipefail
+        VBoxManage hostonlyif create
+        VBoxManage hostonlyif ipconfig vboxnet0 --ip=192.168.57.0 --netmask=255.255.255.0
+        VBoxManage dhcpserver modify --network=HostInterfaceNetworking-vboxnet0 --server-ip=192.168.57.100 --netmask=255.255.255.0 --lower-ip=192.168.57.101 --upper-ip=192.168.57.254 --enable
+      register: vbox_hostonly
+      changed_when: vbox_hostonly.rc != 0
+      args:
+        executable: /bin/bash

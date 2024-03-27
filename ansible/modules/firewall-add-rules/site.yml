@@ -1,0 +1,43 @@
+---
+- hosts: all 
+  become: true
+  gather_facts: true
+  tasks:
+
+  - name: remove port from firewall 
+    ansible.builtin.firewalld:
+      service: "{{item}}"
+      zone: public
+      state: disabled
+      permanent: true
+    loop: 
+      - http
+      - https
+
+  - name: remove port for tcp/udp to firewalld 
+    ansible.builtin.firewalld:
+      port: 8080/tcp 
+      zone: public
+      state: disabled
+      permanent: true 
+
+  - name: add port to firewalld 
+    ansible.builtin.firewalld:
+      service: "{{item}}"
+      state: enabled 
+      permanent: true
+    loop: 
+      - samba
+      - ssh 
+      - squid 
+      - snmp
+      - samba
+      - smtp
+      - vnc-server
+    notify: restart_firewalld
+
+  handlers:
+    - name: restart_firewalld 
+      service: 
+        name: firewalld
+        state: restarted

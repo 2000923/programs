@@ -1,0 +1,42 @@
+number_nodejs: "18"
+
+# %%%%%%%%%%%%%%%% url config %%%%%%%%%%%%%%%%%%%
+tflint_url: "https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh"
+droid_font_url: "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/DroidSansMono/DroidSansMNerdFont-Regular.otf"
+aws_cli_url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+az_url_cli: "https://packages.microsoft.com/repos/azure-cli/"
+discord_url: "https://discord.com/api/download?platform=linux&format=deb"
+hk_font_url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/Hack.zip"
+thunderbird_url: "https://download-installer.cdn.mozilla.net/pub/thunderbird/releases/115.1.1/linux-x86_64/en-US/thunderbird-115.1.1.tar.bz2"
+thun_desktop_url: "https://raw.githubusercontent.com/mozilla/sumo-kb/main/installing-thunderbird-linux/thunderbird.desktop"
+fisher_url: "https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish"
+vscode_url: "https://packages.microsoft.com/repos/vscode"
+edge_url: "https://packages.microsoft.com/repos/edge/"
+virtualbox_extension_url: "https://download.virtualbox.org/virtualbox/7.0.12/Oracle_VM_VirtualBox_Extension_Pack-7.0.12.vbox-extpack"
+get_url_drwaio: "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest"
+
+# %%%%%%%%%%%%%%%% deb download %%%%%%%%%%%%%%%%%%%
+url_deb:
+  # %%%% zoom %%%
+  - package: "https://zoom.us/client/latest/zoom_amd64.deb"
+
+  # %%%% fish %%%
+  - package: "https://launchpad.net/~fish-shell/+archive/ubuntu/release-3/+files/fish_3.6.1-1~jammy_amd64.deb"
+
+  # %%% powershell
+  - package: "https://packages.microsoft.com/config/ubuntu/{{ os_version }}/packages-microsoft-prod.deb"
+
+# %%%%%%%%%%%%%%%% gpg url key %%%%%%%%%%%%%%%%%%%
+hashicorp_url_gpg: "https://apt.releases.hashicorp.com/gpg"
+oracle_url_gpg: "https://www.virtualbox.org/download/oracle_vbox_2016.asc"
+docker_url_gpg: "https://download.docker.com/linux/ubuntu/gpg"
+nodejs_url_gpg: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+
+# %%%%%%%%%%%%%%%% clipgrap url %%%%%%%%%%%%%%%%%%
+clipgrab_url: "https://download.clipgrab.org/clipgrab-3.9.7.tar.gz"
+keepassxc_url: "https://ppa.launchpadcontent.net/phoerious/keepassxc/ubuntu/"
+docker_compose_url: "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-linux-x86_64"
+
+vagrant:
+  Ubuntu:
+    plugin: vagrant-group

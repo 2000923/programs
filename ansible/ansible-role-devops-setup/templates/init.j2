@@ -1,0 +1,53 @@
+require('craftzdog.base')
+require('craftzdog.highlights')
+require('craftzdog.maps')
+require('craftzdog.plugins')
+
+local os = vim.loop.os_uname().sysname
+
+if os == "Darwin" then
+  require('craftzdog.macos')
+elseif os == "Linux" then
+  require('craftzdog.linux')
+elseif os == "Windows_NT" then
+  require('craftzdog.windows')
+else
+  error("Unknown OS")
+end
+
+---- Configuración de nvim-lspconfig
+--local lspconfig = require('lspconfig')
+--
+---- Configuración para el servidor de lenguaje Ansible
+--lspconfig.ansiblels.setup {}
+--
+---- Configuración adicional para el formato de archivos YAML de Ansible
+--lspconfig.yamlls.setup {
+--  filetypes = { 'yaml.ansible' },
+--}
+--
+---- Asigna el servidor de lenguaje Ansible a los buffers YAML de Ansible
+--vim.api.nvim_exec([[
+--  autocmd FileType yaml.ansible lua require('lspconfig').ansiblels.setup{}
+--]], false)
+--
+--vim.g.coc_filetype_map = {
+--  ['yaml.ansible'] = 'ansible',
+--}
+--
+---- Set the version of Ansible
+--vim.g.ansible_builtin_ansibleVersion = '2.10.8'
+--
+---- Set the version of ansible-lint
+--vim.g.ansible_builtin_ansibleLintVersion = '5.4.0'
+--
+---- Set the version of yamllint
+--vim.g.ansible_builtin_yamllintVersion = '1.26.0'
+--
+---- Configuración del tipo de archivo Ansible en init.lua
+--vim.api.nvim_exec([[
+--  autocmd BufNewFile,BufRead *.yml set filetype=yaml.ansible
+--]], false)
+--
+--vim.g.python3_host_prog = '/usr/bin/python3'
+--vim.lsp.set_log_level("debug")

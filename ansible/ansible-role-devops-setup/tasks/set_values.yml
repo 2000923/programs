@@ -1,0 +1,33 @@
+---
+- name: Up values for private vars
+  ansible.builtin.include_vars:
+    file: ../vars/private.yml
+
+- name: Capture version of operative system
+  ansible.builtin.set_fact:
+    os_version: "{{ ansible_distribution_version }}"
+
+- name: Define python program
+  ansible.builtin.command:
+    cmd: which python3
+  register: find_python
+  changed_when: find_python.rc != 0
+
+- name: Set value python_program
+  ansible.builtin.set_fact:
+    python_program: "{{ find_python.stdout }}"
+
+- name: Capture user from remote server
+  ansible.builtin.set_fact:
+    os_user: "{{ ansible_env.SUDO_USER }}"
+
+- name: Register ubuntu pro for updates
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      sudo pro attach "{{ token_pro_ubuntu }}"
+  register: token_pro
+  changed_when: token_pro.rc != 0
+  args:
+    executable: /bin/bash
+  ignore_errors: true

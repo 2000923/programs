@@ -1,0 +1,51 @@
+---
+- name: Install subsonic for GnuLinux
+  hosts: all
+  become: true
+  vars:
+    version: 6.1.6
+    package: openjdk-8-jre
+  gather_facts: true
+  tasks:
+    - name: Install packages necesary
+      ansible.builtin.package:
+        name: "{{ package }}"
+        state: present
+
+    - name: Download the package for the distribution
+      when: ansible_os_family == "Debian"
+      ansible.builtin.apt:
+        deb: https://s3-eu-west-1.amazonaws.com/subsonic-public/download/subsonic-{{ version }}.deb
+        state: present
+
+    - name: Add user subsonic to the group subsonic
+      ansible.builtin.file:
+        path: /var/subsonic
+        mode: "0755"
+        owner: eflores
+        group: eflores
+
+    - name: Change the user for subsonic
+      ansible.builtin.lineinfile:
+        path: /etc/default/subsonic
+        regexp: "SUBSONIC_USER=root"
+        line: "SUBSONIC_USER=eflores"
+      notify: Restarted subsonic
+
+    - name: Create directory for mount music and movies
+      ansible.builtin.file:
+        path: /var/{{ item }}
+        mode: "0755"
+        owner: eflores
+        group: eflores
+        state: directory
+      loop:
+        - music
+        - movie
+
+  handlers:
+    - name: Restarted subsonic
+      ansible.builtin.systemd:
+        name: subsonic
+        state: restarted
+        enabled: true

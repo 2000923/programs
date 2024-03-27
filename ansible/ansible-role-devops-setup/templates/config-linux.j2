@@ -1,0 +1,9 @@
+if type -q exa
+  alias ll "exa -l -g --icons -a -s modified -h"
+  alias lla "ll -a"
+end
+set -x ANSIBLE_CONFIG ~/data/ansible.cfg
+set -x EDITOR nvim
+set -x PATH /home/{{ os_user }}/node_modules/.bin/ $PATH
+set -x PATH /opt/fzf/bin/ $PATH
+set -x ANSIBLE_CONFIG ~/data/ansible.cfg

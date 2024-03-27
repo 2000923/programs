@@ -1,0 +1,138 @@
+---
+- name: Run the equivalent of "apt-get update"
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Pause for 2 minutes to build app cache
+  ansible.builtin.pause:
+    minutes: 2
+
+- name: Install packages extras
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ base_packages }}"
+    - "{{ packages }}"
+
+- name: Download packages to tmp directory
+  ansible.builtin.include_tasks:
+    file: get_temp_url.yml
+
+- name: Install deb packages
+  ansible.builtin.apt:
+    deb: "{{ item.package }}"
+    state: present
+  loop: "{{ url_deb }}"
+
+- name: Install binary script aws
+  ansible.builtin.command: ./aws/install
+  register: aws_install
+  changed_when: aws_install.rc != 0
+  args:
+    chdir: /tmp/
+    executable: /bin/bash
+  ignore_errors: true
+
+- name: Install discord new version
+  ansible.builtin.apt:
+    deb: /tmp/discord.deb
+    state: present
+
+- name: Install drawio new
+  ansible.builtin.apt:
+    deb: /tmp/drawio.deb
+    state: present
+
+- name: Install packages from snap
+  community.general.snap:
+    name: "{{ item }}"
+    state: present
+    classic: true
+  loop: "{{ snap_packages }}"
+
+- name: Install the inkdrop deb in the pc
+  ansible.builtin.apt:
+    deb: /tmp/inkdrop.deb
+
+- name: Run install script for fzf
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      echo 'y' | /opt/fzf/./install
+  register: fzf_download
+  changed_when: fzf_download.rc != 0
+  args:
+    executable: /bin/bash
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%% Install clipgrab %%%%%%%%%%%%%%%%%%%%%%%%%
+
+- name: Compile Clipgrab
+  ansible.builtin.command:
+    cmd: qmake clipgrab.pro
+  register: cg_pro_compile
+  changed_when: cg_pro_compile.rc != 0
+  args:
+    chdir: /opt/clipgrab
+
+- name: Make the object clipgrab
+  when: cg_pro_compile.rc == 0
+  ansible.builtin.command:
+    cmd: make
+  register: make_clipgrab
+  changed_when: make_clipgrab.rc != 0
+  args:
+    chdir: /opt/clipgrab
+
+- name: Link to clipgrab for /usr/local/bin
+  ansible.builtin.file:
+    src: /opt/clipgrab/clipgrab
+    dest: /usr/local/bin/clipgrab
+    owner: root
+    group: root
+    mode: "0755"
+    state: link
+
+- name: Install plugins for nvim with sudo
+  community.general.npm:
+    name: "{{ item }}"
+    global: true
+  loop: "{{ npm_packages_sudo }}"
+
+- name: Install packages complements for nvim
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    executable: pip3
+  loop: "{{ pip_packages }}"
+
+- name: Configure cpan into OS
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      cpanm -n install Neovim::ext
+      echo yes | sudo cpan App::cpanminus
+  register: cpan_neovim
+  changed_when: cpan_neovim.rc != 0
+  args:
+    executable: /usr/bin/fish
+
+- name: Install extension pack from local
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      echo y | VBoxManage extpack install /tmp/Oracle_VM_VirtualBox_Extension_Pack-{{ extension_vb.stdout }}.vbox-extpack
+  register: vbox_extension
+  changed_when: vbox_extension.rc != 0
+  args:
+    executable: /bin/bash
+
+- name: Configure GNS3 server
+  ansible.builtin.shell: |
+    set -o pipefail
+    usermod -aG kvm "{{ os_users }}"
+    usermod -aG libvirt "{{ os_users }}"
+  register: gns3_group
+  changed_when: gns3_group.rc != 0
+  become: true
+  args:
+    executable: /bin/bash

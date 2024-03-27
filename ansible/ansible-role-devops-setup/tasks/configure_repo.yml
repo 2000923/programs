@@ -1,0 +1,132 @@
+---
+# %%%%%%%%%%%%%%%%%%%%%% configure repo hashicorp %%%%%%%%%%%%%%%%%
+- name: Copy file hashicorp apt list
+  ansible.builtin.template:
+    src: hashicorp.j2
+    dest: /etc/apt/sources.list.d/hashicorp.list
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Download and Store Hashicorp's key
+  ansible.builtin.get_url:
+    url: "{{ hashicorp_url_gpg }}"
+    dest: /etc/apt/trusted.gpg.d/hashicorp.asc
+    mode: "0644"
+    force: true
+
+# %%%%%%%%%%%%%%%%%%%%%% configure repo docker-ce %%%%%%%%%%%%%%%%%
+- name: Download and Store Docker's key
+  ansible.builtin.get_url:
+    url: "{{ docker_url_gpg }}"
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+    mode: "0644"
+    force: true
+
+- name: Copy remote file docker apt list
+  ansible.builtin.template:
+    src: docker-ce.j2
+    dest: /etc/apt/sources.list.d/docker-ce.list
+    owner: root
+    group: root
+    mode: "0644"
+
+# %%%%%%%%%%%%%%%%%%%%%% configure repo oracle %%%%%%%%%%%%%%%%%
+
+- name: Download and store Oracle's key
+  ansible.builtin.get_url:
+    url: "{{ oracle_url_gpg }}"
+    dest: /etc/apt/trusted.gpg.d/oracle.asc
+    mode: "0644"
+    force: true
+
+- name: Copy remote file virtualbox apt list
+  ansible.builtin.template:
+    src: virtualbox.j2
+    dest: /etc/apt/sources.list.d/virtualbox.list
+    owner: root
+    group: root
+    mode: "0644"
+
+# %%%%%%%%%%%%%%%%%%%%%% configure repo nodejs %%%%%%%%%%%%%%%%%
+
+- name: Download and store Node's key
+  ansible.builtin.get_url:
+    url: "{{ nodejs_url_gpg }}"
+    dest: /etc/apt/trusted.gpg.d/nodejs.asc
+    mode: "0644"
+    force: true
+
+- name: Copy remote file nodejs apt list
+  ansible.builtin.template:
+    src: nodejs.j2
+    dest: /etc/apt/sources.list.d/nodejs.list
+    owner: root
+    group: root
+    mode: "0644"
+
+# %%%%%%%%%%%%%%%%%%%%%% configure repo microsoft %%%%%%%%%%%%%%%%%
+- name: Download and store Microsoft's key
+  ansible.builtin.get_url:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    dest: /etc/apt/trusted.gpg.d/microsoft.asc
+    mode: "0644"
+    force: true
+
+- name: Add Azure Cli repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ dpkg_architecture.stdout }} signed-by=/etc/apt/trusted.gpg.d/microsoft.asc] {{ az_url_cli }} {{ ansible_distribution_release }} main"
+
+## %%%%%%%%%%%%%%%%%%%%%% configure repo visual code %%%%%%%%%%%%%%%%%
+- name: Download and install VSCode GPG key
+  ansible.builtin.apt_key:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    keyring: /etc/apt/trusted.gpg.d/vscode-archive-keyring.gpg
+
+- name: Add gpg Microsoft repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ dpkg_architecture.stdout }} signed-by=/etc/apt/trusted.gpg.d/vscode-archive-keyring.gpg] {{ vscode_url }} stable main"
+
+# %%%%%%%%%%%%%%%%%%%%%% Configure repo microsoft edge %%%%%%%%%%%%%%%%%
+
+- name: Add repository for edge
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ dpkg_architecture.stdout }}] {{ edge_url }} stable main"
+
+# %%%%%%%%%%%%%%%%%%%%%% Configure repo keepassxc %%%%%%%%%%%%%%%%%
+- name: Download and store Keepassxc's key
+  ansible.builtin.get_url:
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xd89c66d0e31fea2874ebd20561922ab60068fcd6
+    dest: /etc/apt/trusted.gpg.d/keepassxc.asc
+    mode: "0644"
+
+- name: Add repository for keepassxc
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/keepassxc.asc] {{ keepassxc_url }} {{ ansible_distribution_release }} main"
+
+# %%%%%%%%%%%%%%%%%%%%%% Configure repo obs-studio %%%%%%%%%%%%%%%%%
+- name: Download and store obs-studio
+  ansible.builtin.get_url:
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xbc7345f522079769f5bbe987efc71127f425e228
+    dest: /etc/apt/trusted.gpg.d/obs-studio.asc
+    mode: "0644"
+
+- name: Add respository for Save Record the desktop
+  ansible.builtin.apt_repository:
+    repo: "ppa:obsproject/obs-studio"
+    codename: "{{ ansible_distribution_release }}"
+    state: present
+
+# %%%%%%%%%%%%%%%%%%%%%% Configure repo google-drive-ocamlfuse %%%%%%%%%%%%%%%%%
+
+- name: Download gpg google-drive-ocamlfuse
+  ansible.builtin.get_url:
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9ea4d6fca5d37a5d1ca9c09aad5f235df639b041
+    dest: /etc/apt/trusted.gpg.d/armored-keys.asc
+    mode: "0644"
+
+- name: Add repository for google-drive-ocalmfuse
+  ansible.builtin.apt_repository:
+    repo: "ppa:alessandro-strada/ppa"
+    codename: "{{ ansible_distribution_release }}"
+    state: present

@@ -1,0 +1,17 @@
+[defaults]
+host_key_checking = false
+vault_password_file = {% if vault_file is defined %}
+{{ vault_file }}
+{% endif %}
+become_password_file={% if become_file is defined %}
+{{ become_file }}
+{% endif %}
+remote_user = {{ os_user }}
+private_key_file = /home/{{ os_user }}/.ssh/id_rsa
+inventory = inventory
+callbacks_enabled = timer, profile_tasks, profile_roles
+pipelining = True
+timeout=30
+
+[privilege_escalation]
+become = true

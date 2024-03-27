@@ -1,0 +1,9 @@
+---
+- name: Install package to sfinetworks devops
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Add package role
+      ansible.builtin.include_role:
+        name: ansible-role-devops-setup

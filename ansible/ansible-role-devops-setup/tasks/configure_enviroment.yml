@@ -1,0 +1,67 @@
+---
+- name: Change shell to my user
+  ansible.builtin.shell: |
+    set -o pipefail
+    usermod -s /usr/bin/fish "{{ os_user }}"
+  register: user_fish
+  changed_when: user_fish.rc != 0
+  args:
+    executable: /bin/bash
+
+- name: Configure the tflint
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -s "{{ tflint_url }}" | bash
+  register: nerd_fonts_1
+  changed_when: nerd_fonts_1.rc != 0
+  args:
+    chdir: /tmp
+    executable: /bin/bash
+
+- name: Add value to sudoers file
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    insertafter: 'Defaults\suse_pty'
+    line: "Defaults\ttimestamp_type=global"
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Create directories by Defaults
+  ansible.builtin.file:
+    path: "/etc/{{ item }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ os_user }}"
+    group: "{{ os_user }}"
+  loop:
+    - "/mnt/data"
+    - "/mnt/iso"
+
+- name: File the vault txt
+  ansible.builtin.file:
+    path: /etc/vault.txt
+    mode: "0600"
+    owner: root
+    group: root
+    state: touch
+
+- name: Insert line with password
+  ansible.builtin.lineinfile:
+    path: /etc/vault.txt
+    line: "{{ vault_password }}"
+    state: present
+  ignore_errors: true
+
+- name: Create the file for user become
+  ansible.builtin.file:
+    path: /etc/user.txt
+    owner: root
+    group: root
+    mode: "0600"
+    state: touch
+
+- name: Insert line with become password
+  ansible.builtin.lineinfile:
+    path: /etc/user.txt
+    line: "{{ become_password }}"
+    state: present
+  ignore_errors: true

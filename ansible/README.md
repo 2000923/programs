@@ -42,10 +42,7 @@ Scripts en ansible desarrollados para equipos UNIX ( solaris/GNU-Linux/AIX ) req
 - ansible 2.10
 - ansible-galaxy
 - Ubuntu 22.04
-
-# Estructura
-
-Dentro del desarrollo se encuentra muchos casos practicos relacionados a anteriores trabajos realizados.
+- Familia de RedHat
 
 # Developer
 

@@ -1,0 +1,15 @@
+---
+- name: Init block
+  become: true
+  block:
+    - name: Link to program yaml-language-server
+      ansible.builtin.file:
+        src: "/home/{{ os_user }}/node_modules/yaml-language-server/bin/yaml-language-server"
+        path: /usr/local/bin/yaml-language-server
+        state: link
+
+    - name: Link to program tree-sitter
+      ansible.builtin.file:
+        src: "/home/{{ os_user }}/node_modules/tree-sitter-cli/tree-sitter"
+        path: /usr/local/bin/tree-sitter
+        state: link

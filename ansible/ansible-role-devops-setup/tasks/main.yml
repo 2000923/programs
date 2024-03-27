@@ -1,0 +1,58 @@
+---
+- name: Up base vars values
+  ansible.builtin.include_tasks:
+    file: set_values.yml
+
+# Personalice the os with values defect
+- name: Personalice the os
+  ansible.builtin.include_tasks:
+    file: personalice_so.yml
+
+# include task to configure repositories
+- name: Configure repositories
+  ansible.builtin.include_tasks:
+    file: configure_repo.yml
+
+# Install Packages for Ubuntu and developer
+- name: Install packages
+  ansible.builtin.include_tasks:
+    file: install_programs.yml
+
+- name: Configure firewall in local
+  ansible.builtin.include_tasks:
+    file: configure_firewall.yml
+
+- name: Configure enviroment with permise of root
+  ansible.builtin.include_tasks:
+    file: configure_enviroment.yml
+
+- name: Configure Users
+  ansible.builtin.include_tasks:
+    file: configure_users.yml
+
+- name: Add collection community general
+  ansible.builtin.shell:
+    cmd: ansible-galaxy collection install "{{ item }}"
+  register: community_general
+  become: false
+  changed_when: community_general.rc != 0
+  loop:
+    - ansible.posix
+    - community.general
+  args:
+    executable: /usr/bin/fish
+  environment:
+    path: "/home/{{ os_user }}/.local/bin:{{ ansible_env.PATH }}"
+
+- name: Upgrade SO
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  notify: Reboot server before update
+
+- name: Remove files
+  ansible.builtin.file:
+    path: /etc/apt/source.list.d/{{ item }}
+    state: absent
+  loop:
+    - packages_microsoft_com_repos_edge.list

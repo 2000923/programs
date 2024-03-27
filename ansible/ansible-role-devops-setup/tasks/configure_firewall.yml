@@ -1,0 +1,11 @@
+---
+- name: Start services
+  ansible.builtin.service:
+    name: ufw
+    state: started
+    enabled: true
+
+- name: Allow rules
+  community.general.ufw:
+    rule: allow
+    name: openssh

@@ -1,0 +1,58 @@
+---
+- name: Restart the time ntp
+  when: 1 == 2
+  ansible.builtin.service:
+    name: "systemd-timesyncd"
+    state: restarted
+
+- name: Kill process apt
+  when: 1 == 2
+  ansible.builtin.command:
+    cmd: pkill -f apt
+  register: cmd_kill
+  changed_when: cmd_kill.rc != 0
+
+# Assigned values to architecture
+- name: Capture deb-architecture of Operating System
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_architecture
+  changed_when: dpkg_architecture.rc != 0
+
+# Create directories
+- name: Create directory for /etc/apt/keyring
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Change enviroment in rhel
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: "^LANG=.*", line: "LANG=en_US.utf-8" }
+    - { regexp: "^LC_ALL=.*", line: "LC_ALL=en_US.utf-8" }
+  notify: Update locale enviroment
+
+- name: Insert the point mount for my owner pc
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "{{ item }}"
+    insertbefore: ".*swap.*"
+  loop:
+    - "#/dev/mapper/vgdata-Home /home/  xfs defaults 0 0"
+    - "#/dev/mapper/vgdata-Downloads /home/eflores/Downloads xfs defaults 0 0"
+    - '#/dev/mapper/vgdata-machine /home/eflores/VirtualBox\040VMs xfs defaults 0 0'
+    - "#/dev/mapper/vgdata-vagrant /home/eflores/.vagrant.d/ xfs defaults 0  0"
+    - "#/dev/mapper/vgdata-iso  /mnt/iso  xfs  defaults   0   0"
+
+- name: Add the lines mount for my pc
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "{{ item }}"
+    insertafter: ".*swap.*"
+  loop:
+    - "#/dev/sda1 /mnt/data ntfs-3g defaults 0 0"
+    - "#/mnt/data/Music  /var/music none defaults,bind 0 0"
+    - "#/mnt/data/Movies /var/movie none defaults,bind 0 0"

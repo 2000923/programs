@@ -1,0 +1,11 @@
+---
+- name: Reboot server before update
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+
+- name: Update locale enviroment
+  ansible.builtin.shell:
+    cmd: |
+      update-locale
+  register: update-locale
+  changed_when: update-locale.rc != 0
