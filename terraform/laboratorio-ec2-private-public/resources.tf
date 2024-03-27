@@ -14,6 +14,7 @@ resource "aws_subnet" "SN_pub_a" {
   vpc_id            = aws_vpc.VPC_1.id
   cidr_block        = "10.142.1.0/24"
   availability_zone = "us-east-1a"
+  # map_public_ip_on_launch = true
   tags = {
     Name = "SN_pub_a_oym"
   }
@@ -22,7 +23,7 @@ resource "aws_subnet" "SN_pub_a" {
 resource "aws_subnet" "SN_pri_b" {
   vpc_id            = aws_vpc.VPC_1.id
   cidr_block        = "10.142.2.0/24"
-  availability_zone = "us-east-1b"
+  availability_zone = "us-east-1a"
   tags = {
     Name = "SN_pri_b_servicio"
   }
@@ -31,7 +32,7 @@ resource "aws_subnet" "SN_pri_b" {
 resource "aws_subnet" "SN_pri_c" {
   vpc_id            = aws_vpc.VPC_1.id
   cidr_block        = "10.142.3.0/24"
-  availability_zone = "us-east-1c"
+  availability_zone = "us-east-1a"
   tags = {
     Name = "SN_pri_c_backup"
   }
@@ -78,5 +79,29 @@ resource "aws_security_group" "SG_default" {
   }
   tags = {
     Name = "SG_default-hacom"
+  }
+}
+resource "aws_security_group" "SG_default_private" {
+  name        = "SG_default_private-hacom"
+  vpc_id      = aws_vpc.VPC_1.id
+  description = "Permitir trafico private"
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+    cidr_blocks = [
+      "${aws_subnet.SN_pub_a.cidr_block}",
+      "${aws_subnet.SN_pri_b.cidr_block}",
+      "${aws_subnet.SN_pri_c.cidr_block}"
+    ]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "SG_default_private-hacom"
   }
 }
