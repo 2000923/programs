@@ -17,9 +17,9 @@ resource "aws_network_interface" "ens0" {
 }
 
 resource "aws_network_interface" "eth1" {
-  subnet_id       = aws_subnet.SN_pri_b.id
-  private_ips     = ["10.142.2.15"]
-  security_groups = ["${aws_security_group.SG_default_private.id}"]
+  subnet_id   = aws_subnet.SN_pri_b.id
+  private_ips = ["10.142.2.15"]
+  #security_groups = ["${aws_security_group.SG_default_private.id}"]
   tags = {
     Name = "private network interface"
   }
@@ -43,9 +43,9 @@ resource "aws_network_interface" "ens1" {
 }
 
 resource "aws_network_interface" "eth2" {
-  subnet_id       = aws_subnet.SN_pri_c.id
-  private_ips     = ["10.142.3.15"]
-  security_groups = ["${aws_security_group.SG_default_private.id}"]
+  subnet_id   = aws_subnet.SN_pri_c.id
+  private_ips = ["10.142.3.15"]
+  #security_groups = ["${aws_security_group.SG_default_private.id}"]
   tags = {
     Name = "private_c_network_interface"
   }
@@ -77,6 +77,7 @@ resource "aws_instance" "node01" {
     network_interface_id = aws_network_interface.eth0.id
     device_index         = 0
   }
+  user_data = templatefile("${path.module}/templates/bastion_setup.tpl", {})
   tags = {
     Name = "bastion.hacom.com"
   }

@@ -1,0 +1,129 @@
+---
+- name: Configurar nombre de host
+  changed_when: 1 == 2
+  ansible.builtin.shell:
+    cmd: |
+      hostname "{{ ansible_hostname }}"
+
+- name: Crear grupo en el host remoto
+  ansible.builtin.group:
+    name: "{{ item.group }}"
+  loop:
+    - "{{ user }}"
+
+- name: Crear usuarios en el host remoto
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    group: "{{ 'admin' if item.admin == true else 'operator' }}"
+    comment: "{{ item.comment }}"
+    create_home: true
+    home: /home/{{ item.name }}
+    groups: user
+    update_password: on_create
+  loop:
+    - "{{ user }}"
+
+- name: Configurar llaves privadas
+  ansible.posix.authorized_key:
+    user: "{{ item.split('/')[-1].split('.')[0] }}"
+    key: "{{ lookup('file', item) }}"
+  loop:
+    - files/*.pub
+  loop_control:
+    label: "{{ item.split('/')[-1].split('.')[0] }}"
+
+- name: Asegurarse de que exista /etc/sudoers.d
+  ansible.builtin.file:
+    state: directory
+    path: /etc/sudoers.d
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Configurar sudo para los usuarios administradores
+  ansible.builtin.template:
+    src: sudoadmin
+    dest: /etc/sudoers.d/{{ item.user }}
+    mode: "0640"
+    validate: "/usr/sbin/visudo -cf %s"
+    backup: true
+  loop:
+    - "{{ user }}"
+  loop_control:
+    label: "{{ item.user - item.fullname }}"
+  when: item.admin
+
+- name: Configurar zona horaria a America/Lima
+  community.general.timezone:
+    name: America/Lima
+
+- name: Denegar el root en el servidor de monitoreo
+  ansible.builtin.replace:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?(PermitRootLogin).*"
+    replace: '\1 {{ "no" if ansible_hostname == "monitoreo" else "yes" }}'
+
+- name: Iniciar firewalld
+  failed_when: 1 == 2
+  ansible.builtin.systemd:
+    name: firewalld
+    state: started
+  register: is_active
+
+- name: Crear zonas a nivel del firewalld
+  ansible.posix.firewalld:
+    zone: "{{ item.zone }}"
+    interface: "{{ item.interface }}"
+    permanent: true
+    state: enabled
+  loop:
+    - '{ zone="oym", interface = "eth0" }'
+    - '{ zone="servicio", interface = "eth1" }'
+    - '{ zone="backup", interface = "eth2" }'
+
+- name: Block de monitoreo
+  when: ansible_hostname == "monitoreo"
+  block:
+    - name: Configurar puerto para backup 5040
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        insertafter: '^#?Port\s+22$'
+        line: "Port 5040"
+        state: present
+
+    - name: Permitir sshd escuche en el port 5040/tcp
+      community.general.seport:
+      ports: 5040
+      proto: tcp
+      setype: ssh_port_t
+      state: present
+
+    - name: Añadir puertos minimos de administración
+      ansible.posix.firewalld:
+        zone: backup
+        port: 5040
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Instalar docker en servidor de monitoreo
+      ansible.builtin.yum_repository:
+        name: docker-ce
+        description: Docker Yum Repo
+        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+        gpgcheck: false
+        enabled: true
+
+    - name: Actualizar package cache
+      changed_when: false
+      ansible.builtin.package:
+        update_cache: true
+
+    - name: Instalar docker
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io

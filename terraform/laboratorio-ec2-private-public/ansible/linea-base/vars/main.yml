@@ -1,0 +1,12 @@
+---
+user:
+  - name: administrator
+    comment: "Administrador de Sistemas - Hacom"
+    group: admin
+    admin: true
+
+  - name: operator
+    comment: "Operador de Sistemas - Hacom"
+    group: operator
+    admin: false
+# vars file for linea-base
