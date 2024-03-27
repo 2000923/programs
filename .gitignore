@@ -316,3 +316,6 @@ config
 .terraform*
 *.backup
 *.tfstate*
+
+# llaves generadas para ssh
+*.pub
