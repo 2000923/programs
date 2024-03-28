@@ -1,0 +1,57 @@
+---
+- name: Enable firewalld Service
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+
+- name: Enable zone
+  ansible.posix.firewalld:
+    zone: "{{ item }}"
+    state: present
+    permanent: true
+  loop:
+    - oym
+    - servicio
+    - backup
+
+- name: Create target to firewalld zone
+  ansible.posix.firewalld:
+    zone: "{{ item }}"
+    state: present
+    permanent: true
+    target: DROP
+  loop:
+    - oym
+    - servicio
+    - backup
+
+- name: "Set default FirewallD zone: internal"
+  ansible.builtin.command:
+    cmd: firewall-cmd --set-default-zone=servicio
+  changed_when: false
+
+- name: Remove interface zone from public
+  ansible.builtin.command:
+    cmd: firewall-cmd --zone="public" --remove-interface="eth2"
+  changed_when: false
+
+- name: Set default zone for interface
+  ansible.builtin.command:
+    cmd: firewall-cmd --zone="{{ item.zone }}" --add-interface="{{ item.interface }}"
+  loop:
+    - { zone: "oym", interface: "eth0" }
+    - { zone: "servicio", interface: "eth1" }
+    - { zone: "backup", interface: "eth2" }
+  changed_when: false
+
+- name: Permitir redes de acceso
+  ansible.posix.firewalld:
+    zone: "{{ item.zone }}"
+    port: "{{ item.port }}"
+    permanent: true
+    state: enabled
+  loop:
+    - { zone: "oym", port: "22/tcp" }
+    - { zone: "servicio", port: "22/tcp" }
+    - { zone: "backup", port: "5094/tcp" }
+  notify: reload_firewalld

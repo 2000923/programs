@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: add firewall zones
+      ansible.builtin.include_role:
+        name: zonesf
