@@ -1,0 +1,29 @@
+---
+- name: Install docker in remote server
+  ansible.builtin.yum_repository:
+    name: docker-ce
+    description: Docker yum Repo
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgcheck: false
+    enabled: true
+
+- name: Update cache package
+  changed_when: false
+  ansible.builtin.package:
+    update_cache: true
+
+- name: Install docker in remote server
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+- name: Install docker-compose in remote server
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+    dest: /usr/local/bin/docker-compose
+    mode: "0755"
+# tasks file for deploy

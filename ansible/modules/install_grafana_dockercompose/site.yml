@@ -1,0 +1,9 @@
+---
+- name: Deploy docker and docker-compose
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install grafana and prometeus by docker-compose
+      ansible.builtin.include_role:
+        name: deploy

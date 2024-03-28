@@ -1,0 +1,18 @@
+# Este archivo fue generado automáticamente por Ansible
+
+# Permitir el acceso a la red de control de Chrony
+allow 0.0.0.0/0
+
+# Utilizar servidores NTP públicos como fuentes de tiempo
+server time.nist.gov iburst
+server time.google.com iburst
+
+# Opcional: puedes agregar tus propios servidores NTP aquí
+
+# Ignorar servidores NTP locales
+local stratum 10
+
+# Opcional: puedes configurar Chrony para ignorar fuentes de tiempo de baja calidad
+
+# Otras configuraciones personalizadas pueden ir aquí
+
