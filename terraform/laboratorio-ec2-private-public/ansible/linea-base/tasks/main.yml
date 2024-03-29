@@ -203,3 +203,29 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
+
+    - name: Activar servicio de docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Añadir usuario administrator al grupo docker
+      ansible.builtin.user:
+        name: administrator
+        groups: docker
+        append: true
+
+    - name: Instalar Docker-Compose en servidor remoto
+      ansible.builtin.get_url:
+        url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: "0755"
+
+    - name: Copiar docker-compose yaml
+      ansible.builtin.template:
+        src: docker-compose.j2
+        dest: /scripts/docker-compose.yml
+        mode: "0755"
+        owner: administrator
+        group: administrator

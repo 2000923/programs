@@ -1,8 +1,9 @@
 ---
-- hosts: all
+- name: Install applications for hacom
+  hosts: all
   become: true
   gather_facts: true
   tasks:
-    - name: linea base
+    - name: Linea base
       ansible.builtin.include_role:
         name: linea-base
