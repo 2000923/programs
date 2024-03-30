@@ -1,0 +1,6 @@
+---
+- name: Install package minimal
+  ansible.builtin.package:
+    name: "{{ packages.default }}"
+    state: present
+# tasks file for deploy

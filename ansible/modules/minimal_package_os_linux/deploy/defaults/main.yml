@@ -1,0 +1,22 @@
+---
+packages:
+  default:
+    - at
+    - bzip2
+    - iotop
+    - net-tools
+    - nmap
+    - perl
+    - procps
+    - psmisc
+    - rsync
+    - sysstat
+    - tcpdump
+    - telnet
+    - traceroute
+    - unzip
+    - vim
+    - vsftpd
+    - wget
+    - zip
+    - tree

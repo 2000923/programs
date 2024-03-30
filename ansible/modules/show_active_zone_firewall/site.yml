@@ -1,0 +1,49 @@
+---
+- name: Show Ec2
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Capture interface data
+      ansible.builtin.command:
+        cmd: firewall-cmd --get-active-zones
+      register: firewall_cmd_zones
+      changed_when: false
+
+    - name: Mostrar salida en formato JSON
+      ansible.builtin.set_fact:
+        data: "{{ {'zone': firewall_cmd_zones.stdout_lines[0], 'interfaces': firewall_cmd_zones.stdout_lines[1].split(':')[1].strip().split()} | to_json }}"
+
+    - name: Debug
+      ansible.builtin.debug:
+        var: data
+
+    - name: Asignar Variable zone_data
+      ansible.builtin.set_fact:
+        zone_data: "{{ data | from_json }}"
+
+    - name: Mostrar zone data
+      ansible.builtin.debug:
+        msg: "{{ zone_data }}"
+
+    - name: Asignar zone
+      ansible.builtin.set_fact:
+        zone: "{{ data | from_json | json_query('zone') }}"
+
+    - name: Almacenar interfaces en una lista
+      ansible.builtin.set_fact:
+        interface_list: "{{ zone_data.interfaces }}"
+
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "{{ zone }}"
+
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "{{ interface_list }}"
+
+    - name: Asignar interfaces a variables individuales
+      ansible.builtin.set_fact:
+        a: "{{ interface_list[0] }}"
+        b: "{{ interface_list[1] }}"
+        c: "{{ interface_list[2] }}"

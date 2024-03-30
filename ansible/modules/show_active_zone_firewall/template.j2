@@ -1,0 +1,4 @@
+Zonas activas
+{% for zoneinfo in firewall_cmd_zones.stdout_lines %}
+ Zona: "{{ zoneinfo }}"
+{% endfor %}

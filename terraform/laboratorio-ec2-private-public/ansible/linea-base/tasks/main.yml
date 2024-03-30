@@ -1,15 +1,13 @@
 ---
 - name: Configurar nombre de host
-  changed_when: 1 == 2
-  ansible.builtin.shell:
-    cmd: |
-      hostname "{{ ansible_hostname }}"
+  ansible.builtin.hostname:
+    name: "{{ ansible_hostname }}"
 
 - name: Crear grupo en el host remoto
   ansible.builtin.group:
     name: "{{ item.group }}"
-  loop:
-    - "{{ user }}"
+    state: present
+  loop: "{{ user }}"
 
 - name: Crear usuarios en el host remoto
   ansible.builtin.user:
@@ -18,16 +16,15 @@
     comment: "{{ item.comment }}"
     create_home: true
     home: /home/{{ item.name }}
-    groups: user
+    groups: users
     update_password: on_create
-  loop:
-    - "{{ user }}"
+  loop: "{{ user }}"
 
 - name: Configurar llaves privadas
   ansible.posix.authorized_key:
     user: "{{ item.split('/')[-1].split('.')[0] }}"
     key: "{{ lookup('file', item) }}"
-  loop:
+  with_fileglob:
     - files/*.pub
   loop_control:
     label: "{{ item.split('/')[-1].split('.')[0] }}"
@@ -43,14 +40,13 @@
 - name: Configurar sudo para los usuarios administradores
   ansible.builtin.template:
     src: sudoadmin
-    dest: /etc/sudoers.d/{{ item.user }}
+    dest: /etc/sudoers.d/{{ item.name }}
     mode: "0640"
     validate: "/usr/sbin/visudo -cf %s"
     backup: true
-  loop:
-    - "{{ user }}"
+  loop: "{{ user }}"
   loop_control:
-    label: "{{ item.user - item.fullname }}"
+    label: "{{ item.name }} - {{ item.comment }}"
   when: item.admin
 
 - name: Configurar zona horaria a America/Lima
@@ -77,6 +73,7 @@
     - oym
     - servicio
     - backup
+  notify: reload_firewalld
 
 - name: Create target to firewalld zone
   ansible.posix.firewalld:
@@ -91,12 +88,17 @@
 
 - name: "Set default FirewallD zone: internal"
   ansible.builtin.command:
-    cmd: firewall-cmd --set-default-zone=oym
+    cmd: firewall-cmd --set-default-zone="oym"
   changed_when: false
 
 - name: Remove interface zone from public
   ansible.builtin.command:
-    cmd: firewall-cmd --zone="public" --remove-interface="eth2"
+    cmd: firewall-cmd --zone="public" --remove-interface="eth1"
+  changed_when: false
+
+- name: Remove interface zone from public
+  ansible.builtin.command:
+    cmd: firewall-cmd --zone="oym" --remove-interface="eth2"
   changed_when: false
 
 - name: Set default zone for interface
@@ -169,10 +171,10 @@
 
     - name: Permitir sshd escuche en el port 5040/tcp
       community.general.seport:
-      ports: 5040
-      proto: tcp
-      setype: ssh_port_t
-      state: present
+        ports: 5040
+        proto: tcp
+        setype: ssh_port_t
+        state: present
 
     - name: Añadir puertos minimos de administración
       ansible.posix.firewalld:

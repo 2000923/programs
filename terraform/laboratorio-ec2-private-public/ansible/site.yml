@@ -1,6 +1,6 @@
 ---
 - name: Install applications for hacom
-  hosts: all
+  hosts: monitoreo
   become: true
   gather_facts: true
   tasks:
