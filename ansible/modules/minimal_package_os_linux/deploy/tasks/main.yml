@@ -1,4 +1,22 @@
 ---
+- name: Set authorized key taken from file
+  ansible.posix.authorized_key:
+    user: vagrant
+    state: present
+    key: "{{ lookup('file', '/home/eflores/.ssh/id_rsa.pub') }}"
+
+- name: Create directory sudoers.d
+  ansible.builtin.file:
+    path: /etc/sudoers.d/
+    mode: "0755"
+
+- name: Copy content
+  ansible.builtin.copy:
+    content: |
+      vagrant ALL=(ALL) NOPASSWD:ALL
+    dest: /etc/sudoers.d/vagrant
+    mode: "0644"
+
 - name: Install package minimal
   ansible.builtin.package:
     name: "{{ packages.default }}"

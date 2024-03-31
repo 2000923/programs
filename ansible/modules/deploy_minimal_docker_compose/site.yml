@@ -1,0 +1,16 @@
+---
+- name: Hosts
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    path: "/home/eflores/git.personal/other_projects/observability/02-monitoreo-logs"
+    file: "docker-compose.yml"
+  tasks:
+    - name: Include role minimal software
+      ansible.builtin.include_role:
+        name: "./deploy/deploy_minimal"
+
+    - name: Include role minimal deploy docker-compose
+      ansible.builtin.include_role:
+        name: "./deploy/deploy_docker_compose"

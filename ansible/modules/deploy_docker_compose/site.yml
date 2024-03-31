@@ -1,0 +1,12 @@
+---
+- name: Deploy docker-compose
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    path: "/home/eflores/git.personal/other_projects/observability/02-monitoreo-logs"
+    file: "docker-compose.yml"
+  tasks:
+    - name: Include role
+      ansible.builtin.include_role:
+        name: deploy

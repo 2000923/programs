@@ -1,0 +1,26 @@
+---
+- name: Create directory remote
+  ansible.builtin.file:
+    dest: /deploy
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Debug
+  ansible.builtin.debug:
+    var: path
+
+- name: Deploy docker-compose in remote server
+  ansible.builtin.copy:
+    src: "{{ path }}/{{ file }}"
+    dest: "/deploy"
+    mode: "0644"
+    owner: root
+    group: root
+    force: true
+
+- name: Deploy remote docker-compose.yml file
+  ansible.builtin.command:
+    cmd: docker-compose up -d docker-compose.yml
+  changed_when: false
