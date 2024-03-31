@@ -1,6 +1,6 @@
 #!/bin/sh
-DIRECTORY_REMOTE="/objetive"
-DIRECTORY_ORIGEN="/backup"
+DIRECTORY_REMOTE="/backup"
+DIRECTORY_ORIGEN="/objetive"
 SERVER_REMOTE="monitoreo"
 USER_REMOTE="administrator"
 PRIVATE_KEY="${HOME}/.ssh/id_rsa"
