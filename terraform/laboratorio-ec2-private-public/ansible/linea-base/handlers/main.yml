@@ -1,6 +1,11 @@
 ---
 - name: reload_firewall
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: firewalld
+    state: restarted
+
+- name: restart_chrony
+  ansible.builtin.systemd:
+    name: chronyd
     state: restarted
 # handlers file for linea-base

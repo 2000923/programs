@@ -1,5 +1,5 @@
 ---
-- name: Show Ec2
+- name: Assigned interfaces to values
   hosts: all
   gather_facts: true
   become: true
@@ -14,17 +14,9 @@
       ansible.builtin.set_fact:
         data: "{{ {'zone': firewall_cmd_zones.stdout_lines[0], 'interfaces': firewall_cmd_zones.stdout_lines[1].split(':')[1].strip().split()} | to_json }}"
 
-    - name: Debug
-      ansible.builtin.debug:
-        var: data
-
     - name: Asignar Variable zone_data
       ansible.builtin.set_fact:
         zone_data: "{{ data | from_json }}"
-
-    - name: Mostrar zone data
-      ansible.builtin.debug:
-        msg: "{{ zone_data }}"
 
     - name: Asignar zone
       ansible.builtin.set_fact:
@@ -33,14 +25,6 @@
     - name: Almacenar interfaces en una lista
       ansible.builtin.set_fact:
         interface_list: "{{ zone_data.interfaces }}"
-
-    - name: Debug
-      ansible.builtin.debug:
-        msg: "{{ zone }}"
-
-    - name: Debug
-      ansible.builtin.debug:
-        msg: "{{ interface_list }}"
 
     - name: Asignar interfaces a variables individuales
       ansible.builtin.set_fact:

@@ -1,4 +1,29 @@
 ---
+- name: Activar servicio firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+
+- name: Captura de datos a nivel de firewalld
+  ansible.builtin.command:
+    cmd: firewall-cmd --get-active-zones
+  register: firewall_output
+  changed_when: false
+
+- name: Asignar valor a la zona
+  ansible.builtin.set_fact:
+    zone: "{{ firewall_output.stdout_lines[0] }}"
+
+- name: Asignar interfaces a la zona
+  ansible.builtin.set_fact:
+    interfaces: "{{ firewall_output.stdout_lines[1].split(':')[1].strip().split() }} "
+
+- name: Debug
+  ansible.builtin.set_fact:
+    eth0: "{{ interfaces[0] }}"
+    eth1: "{{ interfaces[1] }}"
+    eth2: "{{ interfaces[2] }}"
+
 - name: Configurar nombre de host
   ansible.builtin.hostname:
     name: "{{ ansible_hostname }}"
@@ -59,11 +84,6 @@
     regexp: "^#?(PermitRootLogin).*"
     replace: '\1 {{ "no" if ansible_hostname == "monitoreo" else "yes" }}'
 
-- name: Activar servicio firewalld
-  ansible.builtin.service:
-    name: firewalld
-    state: started
-
 - name: Enable zone
   ansible.posix.firewalld:
     zone: "{{ item }}"
@@ -73,7 +93,11 @@
     - oym
     - servicio
     - backup
-  notify: reload_firewalld
+
+- name: Restart firewalld
+  ansible.builtin.command:
+    cmd: systemctl restart firewalld
+  changed_when: false
 
 - name: Create target to firewalld zone
   ansible.posix.firewalld:
@@ -86,30 +110,6 @@
     - servicio
     - backup
 
-- name: "Set default FirewallD zone: internal"
-  ansible.builtin.command:
-    cmd: firewall-cmd --set-default-zone="oym"
-  changed_when: false
-
-- name: Remove interface zone from public
-  ansible.builtin.command:
-    cmd: firewall-cmd --zone="public" --remove-interface="eth1"
-  changed_when: false
-
-- name: Remove interface zone from public
-  ansible.builtin.command:
-    cmd: firewall-cmd --zone="oym" --remove-interface="eth2"
-  changed_when: false
-
-- name: Set default zone for interface
-  ansible.builtin.command:
-    cmd: firewall-cmd --zone="{{ item.zone }}" --add-interface="{{ item.interface }}"
-  loop:
-    - { zone: "oym", interface: "eth0" }
-    - { zone: "servicio", interface: "eth1" }
-    - { zone: "backup", interface: "eth2" }
-  changed_when: false
-
 - name: Permitir redes de acceso
   ansible.posix.firewalld:
     zone: "{{ item.zone }}"
@@ -119,8 +119,27 @@
   loop:
     - { zone: "oym", port: "22/tcp" }
     - { zone: "servicio", port: "22/tcp" }
-    - { zone: "backup", port: "5094/tcp" }
-  notify: reload_firewalld
+    - { zone: "backup", port: "22/tcp" }
+
+- name: Remove interface zone from public
+  ansible.builtin.command:
+    cmd: firewall-cmd --zone="public" --remove-interface="{{ item }}"
+  register: firewall_remove_interface
+  changed_when: firewall_remove_interface.rc != 0
+  loop:
+    - "{{ eth0 }}"
+    - "{{ eth1 }}"
+    - "{{ eth2 }}"
+
+- name: Set default zone for interface
+  ansible.builtin.command:
+    cmd: firewall-cmd --zone="{{ item.zone }}" --add-interface="{{ item.interface }}"
+  loop:
+    - { zone: "oym", interface: "{{ eth0 }}" }
+    - { zone: "servicio", interface: "{{ eth1 }}" }
+    - { zone: "backup", interface: "{{ eth2 }}" }
+  changed_when: false
+  notify: reload_firewall
 
 - name: Instalar Chrony
   ansible.builtin.package:
@@ -130,9 +149,9 @@
 - name: Configurar el servidor NTP
   ansible.builtin.template:
     src: templates/chrony.conf.j2
-    dest: /etc/chrony/chrony.conf
+    dest: /etc/chrony.conf
     mode: "0644"
-  notify: Restart_Chrony
+  notify: restart_chrony
 
 - name: Block de bastion
   when: ansible_hostname == "bastion"
@@ -203,8 +222,6 @@
         state: present
       loop:
         - docker-ce
-        - docker-ce-cli
-        - containerd.io
 
     - name: Activar servicio de docker
       ansible.builtin.service:
