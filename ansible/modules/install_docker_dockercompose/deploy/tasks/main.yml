@@ -16,6 +16,7 @@
   ansible.builtin.yum:
     name: "{{ item }}"
     state: present
+  notify: start_docker
   loop:
     - docker-ce
     - docker-ce-cli

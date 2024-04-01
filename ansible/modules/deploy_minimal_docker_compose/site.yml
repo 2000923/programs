@@ -11,6 +11,10 @@
       ansible.builtin.include_role:
         name: "./deploy/deploy_minimal"
 
+    - name: Install docker and docker-compose
+      ansible.builtin.include_role:
+        name: "./deploy/install-docker-dockercompose"
+
     - name: Include role minimal deploy docker-compose
       ansible.builtin.include_role:
         name: "./deploy/deploy_docker_compose"
