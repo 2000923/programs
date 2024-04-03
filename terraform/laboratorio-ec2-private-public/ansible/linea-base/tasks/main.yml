@@ -17,7 +17,7 @@
     state: stopped
     enabled: false
 
-- name: Captura de datos a nivel de firewalld
+- name: Captura de datos a nivel de firewalld cuando la zona es publica
   ansible.builtin.command:
     cmd: firewall-cmd --get-active-zones
   register: firewall_output
@@ -31,7 +31,7 @@
   ansible.builtin.set_fact:
     interfaces: "{{ firewall_output.stdout_lines[1].split(':')[1].strip().split() }}"
 
-- name: Debug
+- name: set interfaces
   ansible.builtin.set_fact:
     eth0: "{{ interfaces[0] }}"
     eth1: "{{ interfaces[1] }}"
@@ -139,24 +139,26 @@
     state: enabled
   loop:
     - { zone: "oym", port: "22/tcp" }
-    - { zone: "oym", port: "9100/tcp" }
-    - { zone: "servicio", port: "22/tcp" }
+    - { zone: "servicio", port: "3000/tcp" }
     - { zone: "servicio", port: "9090/tcp" }
-    - { zone: "backup", port: "22/tcp" }
+    - { zone: "servicio", port: "9093/tcp" }
+    - { zone: "servicio", port: "9100/tcp" }
+    - { zone: "backup", port: "5040/tcp" }
 
-- name: Remove interface zone from public
-  ansible.builtin.command:
-    cmd: firewall-cmd --zone="public" --remove-interface="{{ item }}"
-  register: firewall_remove_interface
-  changed_when: firewall_remove_interface.rc != 0
-  loop:
-    - "{{ eth0 }}"
-    - "{{ eth1 }}"
-    - "{{ eth2 }}"
+# - name: Remove interface zone from public
+#  ansible.builtin.command:
+#    cmd: firewall-cmd --zone="public" --remove-interface="{{ item }}" --permanent
+#  register: firewall_remove_interface
+#  changed_when: firewall_remove_interface.rc != 0
+#  loop:
+#    - "{{ eth0 }}"
+#    - "{{ eth1 }}"
+#    - "{{ eth2 }}"
 
-- name: Set default zone for interface
+# En caso de no aginar definir la zona por defecto y si cumple con todos los puertos bloequeados
+- name: Set zone for interface
   ansible.builtin.command:
-    cmd: firewall-cmd --zone="{{ item.zone }}" --add-interface="{{ item.interface }}"
+    cmd: firewall-cmd --zone="{{ item.zone }}" --change-interface="{{ item.interface }}" --permanent
   loop:
     - { zone: "oym", interface: "{{ eth0 }}" }
     - { zone: "servicio", interface: "{{ eth1 }}" }
@@ -223,12 +225,12 @@
         system: true
         state: present
 
-    - name: Create user node_exporter
-      ansible.builtin.user:
-        name: node_exporter
-        shell: /sbin/nologin
-        system: true
-        group: node_exporter
+    #   - name: Create user node_exporter
+    #     ansible.builtin.user:
+    #       name: node_exporter
+    #       shell: /sbin/nologin
+    #       system: true
+    #       group: node_exporter
 
     - name: Create system service
       ansible.builtin.copy:
@@ -238,8 +240,8 @@
           After=network.target
 
           [Service]
-          User=node_exporter
-          Group=node_exporter
+          User=root
+          Group=root
           Type=simple
           ExecStart=/usr/local/bin/node_exporter
 
@@ -274,15 +276,6 @@
         setype: ssh_port_t
         state: present
 
-    - name: Añadir puertos minimos de administración
-      ansible.posix.firewalld:
-        zone: backup
-        port: "5040/tcp"
-        permanent: true
-        state: enabled
-        immediate: true
-      notify: reload_firewall
-
     - name: Instalar docker en servidor de monitoreo
       ansible.builtin.yum_repository:
         name: docker-ce
@@ -315,24 +308,32 @@
         groups: docker
         append: true
 
+    - name: Instalar git en "{{ ansible_hostname }}"
+      ansible.builtin.package:
+        name: git
+        state: present
+
     - name: Instalar Docker-Compose en servidor remoto
       ansible.builtin.get_url:
         url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
         dest: /usr/local/bin/docker-compose
         mode: "0755"
 
-    - name: Copiar docker-compose yaml
-      ansible.builtin.template:
-        src: docker-compose.j2
-        dest: /scripts/docker-compose.yml
-        mode: "0755"
-        owner: administrator
-        group: admin
+    - name: Generar cadena aleatoria
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          date +%s | md5sum | awk '{ print $1 }' | tr '0123456789' '0lzeAsgtBa' | cut -c 1-12
+      args:
+        executable: /bin/bash
+      register: random_name
+      changed_when: random_name.rc != 0
+      delegate_to: localhost
 
     - name: Clone remote repository
       ansible.builtin.git:
         repo: https://github.com/vegasbrianc/prometheus.git
         clone: true
-        dest: /scripts/
+        dest: /scripts/{{ random_name.stdout }}
         remote: master
-        recursive: false
+        version: HEAD
