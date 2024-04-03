@@ -1,0 +1,66 @@
+---
+- name: Install node exporter v1.0.1
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    url_node_export: "https://github.com/prometheus/node_exporter/releases/download/v1.1.0/node_exporter-1.1.0.linux-amd64.tar.gz"
+  tasks:
+    - name: Download package remote
+      ansible.builtin.get_url:
+        url: "{{ url_node_export }}"
+        mode: "0644"
+        dest: /tmp/node_exporter.tar.gz
+        owner: root
+        group: root
+
+    - name: Unarchive file remote
+      ansible.builtin.unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /usr/local/bin/
+        extra_opts: [--strip-components=1]
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      register: unzip_output
+
+    - name: Group add node_exporter
+      ansible.builtin.group:
+        name: node_exporter
+        system: true
+        state: present
+
+    - name: Create user node_exporter
+      ansible.builtin.user:
+        name: node_exporter
+        shell: /sbin/nologin
+        system: true
+        group: node_exporter
+
+    - name: Create system service
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=Node Exporter
+          After=network.target
+
+          [Service]
+          User=node_exporter
+          Group=node_exporter
+          Type=simple
+          ExecStart=/usr/local/bin/node_exporter
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/node_exporter.service
+        mode: "0644"
+        owner: root
+        group: root
+
+    - name: Start and Enable service
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        name: node_exporter
+        state: started
+        enabled: true

@@ -4,17 +4,18 @@
   become: true
   gather_facts: true
   vars:
-    path: "/home/eflores/git.personal/other_projects/observability/02-monitoreo-logs"
+    path: "/home/eflores/git.personal/other_projects/observability/04-monitoreo-centralizado"
     file: "docker-compose.yml"
+    domain: "slackwarnet.com"
   tasks:
     - name: Include role minimal software
       ansible.builtin.include_role:
         name: "./deploy/deploy_minimal"
 
-    - name: Install docker and docker-compose
-      ansible.builtin.include_role:
-        name: "./deploy/install-docker-dockercompose"
-
-    - name: Include role minimal deploy docker-compose
-      ansible.builtin.include_role:
-        name: "./deploy/deploy_docker_compose"
+    #    - name: Install docker and docker-compose
+    #      ansible.builtin.include_role:
+    #        name: "./deploy/install-docker-dockercompose"
+    #
+    #    - name: Include role minimal deploy docker-compose
+    #      ansible.builtin.include_role:
+    #        name: "./deploy/deploy_docker_compose"

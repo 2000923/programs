@@ -1,8 +1,21 @@
 ---
+- name: Update cache package
+  changed_when: false
+  ansible.builtin.package:
+    update_cache: true
+
 - name: Activar servicio firewalld
+  when: ansible_os_family == "RedHat"
   ansible.builtin.service:
     name: firewalld
     state: started
+
+- name: Deshabilitar servicio cockpit.socket
+  when: ansible_os_family == "RedHat"
+  ansible.builtin.service:
+    name: cockpit.socket
+    state: stopped
+    enabled: false
 
 - name: Captura de datos a nivel de firewalld
   ansible.builtin.command:
@@ -16,7 +29,7 @@
 
 - name: Asignar interfaces a la zona
   ansible.builtin.set_fact:
-    interfaces: "{{ firewall_output.stdout_lines[1].split(':')[1].strip().split() }} "
+    interfaces: "{{ firewall_output.stdout_lines[1].split(':')[1].strip().split() }}"
 
 - name: Debug
   ansible.builtin.set_fact:
@@ -26,7 +39,7 @@
 
 - name: Configurar nombre de host
   ansible.builtin.hostname:
-    name: "{{ ansible_hostname }}"
+    name: "{{ inventory_hostname }}"
 
 - name: Crear grupo en el host remoto
   ansible.builtin.group:
@@ -44,6 +57,14 @@
     groups: users
     update_password: on_create
   loop: "{{ user }}"
+
+- name: Crear escritorio scripts en servidores remoto
+  ansible.builtin.file:
+    path: /scripts
+    state: directory
+    mode: "0755"
+    owner: administrator
+    group: admin
 
 - name: Configurar llaves privadas
   ansible.posix.authorized_key:
@@ -118,7 +139,9 @@
     state: enabled
   loop:
     - { zone: "oym", port: "22/tcp" }
+    - { zone: "oym", port: "9100/tcp" }
     - { zone: "servicio", port: "22/tcp" }
+    - { zone: "servicio", port: "9090/tcp" }
     - { zone: "backup", port: "22/tcp" }
 
 - name: Remove interface zone from public
@@ -139,7 +162,11 @@
     - { zone: "servicio", interface: "{{ eth1 }}" }
     - { zone: "backup", interface: "{{ eth2 }}" }
   changed_when: false
-  notify: reload_firewall
+
+- name: Restart firewalld
+  ansible.builtin.command:
+    cmd: systemctl restart firewalld
+  changed_when: false
 
 - name: Instalar Chrony
   ansible.builtin.package:
@@ -154,22 +181,15 @@
   notify: restart_chrony
 
 - name: Block de bastion
-  when: ansible_hostname == "bastion"
+  when: inventory_hostname == "bastion"
   block:
-    - name: Crear escritorio scripts en servidor remoto
-      ansible.builtin.file:
-        path: /scripts
-        mode: "0755"
-        owner: administrator
-        group: administrator
-
     - name: Copia script de backup a servidor remoto
       ansible.builtin.template:
         src: backup.sh
         dest: /scripts/backup.sh
         mode: "0755"
-        owner: root
-        group: root
+        owner: administrator
+        group: admin
 
     - name: Configurar cron para la ejecución del backup
       ansible.builtin.cron:
@@ -178,8 +198,67 @@
         hour: 0
         job: /scripts/./backup.sh
 
+    - name: Download package remote
+      ansible.builtin.get_url:
+        url: "{{ url_node_export }}"
+        mode: "0644"
+        dest: /tmp/node_exporter.tar.gz
+        owner: root
+        group: root
+
+    - name: Unarchive file remote
+      ansible.builtin.unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /usr/local/bin/
+        extra_opts: [--strip-components=1]
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      register: unzip_output
+
+    - name: Group add node_exporter
+      ansible.builtin.group:
+        name: node_exporter
+        system: true
+        state: present
+
+    - name: Create user node_exporter
+      ansible.builtin.user:
+        name: node_exporter
+        shell: /sbin/nologin
+        system: true
+        group: node_exporter
+
+    - name: Create system service
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=Node Exporter
+          After=network.target
+
+          [Service]
+          User=node_exporter
+          Group=node_exporter
+          Type=simple
+          ExecStart=/usr/local/bin/node_exporter
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/node_exporter.service
+        mode: "0644"
+        owner: root
+        group: root
+
+    - name: Start and Enable service
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        name: node_exporter
+        state: started
+        enabled: true
+
 - name: Block de monitoreo
-  when: ansible_hostname == "monitoreo"
+  when: inventory_hostname == "monitoreo"
   block:
     - name: Configurar puerto para backup 5040
       ansible.builtin.lineinfile:
@@ -198,10 +277,11 @@
     - name: Añadir puertos minimos de administración
       ansible.posix.firewalld:
         zone: backup
-        port: 5040
-        state: enabled
+        port: "5040/tcp"
         permanent: true
+        state: enabled
         immediate: true
+      notify: reload_firewall
 
     - name: Instalar docker en servidor de monitoreo
       ansible.builtin.yum_repository:
@@ -247,4 +327,12 @@
         dest: /scripts/docker-compose.yml
         mode: "0755"
         owner: administrator
-        group: administrator
+        group: admin
+
+    - name: Clone remote repository
+      ansible.builtin.git:
+        repo: https://github.com/vegasbrianc/prometheus.git
+        clone: true
+        dest: /scripts/
+        remote: master
+        recursive: false

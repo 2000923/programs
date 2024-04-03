@@ -1,4 +1,23 @@
 ---
+- name: Define cockpit start
+  ansible.builtin.service:
+    name: cockpit.socket
+    state: "{{ 'started' if cockpit is defined else 'stopped' }}"
+    enbaled: "{{ 'true' if cockpit is defined else 'false' }}"
+  failed_when: 1 == 2
+
+- name: Define hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname | default('localhost') }}.{{ domain | default('localdomain') }}"
+
+- name: Define ip assigned a hostname.subdomain
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }}\t {{ inventory_hostname }}.{{ domain }}"
+    state: present
+  when: inventory_hostname is defined
+  failed_when: 1 == 2
+
 - name: Set authorized key taken from file
   ansible.posix.authorized_key:
     user: vagrant

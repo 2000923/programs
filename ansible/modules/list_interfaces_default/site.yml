@@ -1,0 +1,13 @@
+---
+- name: List the interface default
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Show interfaces
+      ansible.builtin.set_fact:
+        interfaces: "{{ ansible_default_ipv4.address }}"
+
+    - name: Debug
+      ansible.builtin.debug:
+        var: interfaces

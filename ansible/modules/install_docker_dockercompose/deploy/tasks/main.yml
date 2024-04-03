@@ -19,8 +19,6 @@
   notify: start_docker
   loop:
     - docker-ce
-    - docker-ce-cli
-    - containerd.io
 
 - name: Install docker-compose in remote server
   ansible.builtin.get_url:

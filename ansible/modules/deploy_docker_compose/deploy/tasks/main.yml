@@ -15,9 +15,3 @@
     owner: root
     group: root
     force: true
-- name: Deploy remote docker-compose.yml file
-  ansible.builtin.command:
-    cmd: /usr/local/bin/docker-compose up -d
-  changed_when: false
-  args:
-    chdir: /deploy

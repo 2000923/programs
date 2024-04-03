@@ -9,4 +9,6 @@ user:
     comment: "Operador de Sistemas - Hacom"
     group: operator
     admin: false
+
+url_node_export: "https://github.com/prometheus/node_exporter/releases/download/v1.1.0/node_exporter-1.1.0.linux-amd64.tar.gz"
 # vars file for linea-base
