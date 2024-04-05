@@ -12,4 +12,4 @@ do
 done
 
 # Install required OS dependencies
-yum -y install ansible
+yum -y install ansible telnet

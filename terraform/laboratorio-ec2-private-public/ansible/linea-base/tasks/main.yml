@@ -337,3 +337,4 @@
         dest: /scripts/{{ random_name.stdout }}
         remote: master
         version: HEAD
+      notify: restarted_sshd

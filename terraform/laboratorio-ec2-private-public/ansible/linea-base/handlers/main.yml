@@ -8,4 +8,9 @@
   ansible.builtin.systemd:
     name: chronyd
     state: restarted
+
+- name: restart_sshd
+  ansible.builtin.systemd:
+    name: sshd
+    state: restarted
 # handlers file for linea-base
