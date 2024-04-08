@@ -3,6 +3,10 @@
   hosts: all
   become: true
   gather_facts: true
+  #vars:
+  #  proxy_env:
+  #    http_proxy: "http://10.142.1.15:3128"
+  #    https_proxy: "http://10.142.1.15:3128"
   tasks:
     - name: Linea base
       ansible.builtin.include_role:

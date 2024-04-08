@@ -71,6 +71,18 @@ resource "aws_security_group" "SG_default" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port   = 3128
+    to_port     = 3128
+    protocol    = "tcp"
+    cidr_blocks = ["10.142.1.0/24"]
+  }
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["10.142.1.0/24"]
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -84,14 +96,36 @@ resource "aws_security_group" "SG_default" {
 resource "aws_security_group" "SG_default_private" {
   name        = "SG_default_private-hacom"
   vpc_id      = aws_vpc.VPC_1.id
-  description = "Permitir trafico private"
+  description = "Permitir trafico private tcp/9090 servicio"
   ingress {
     from_port = 22
     to_port   = 22
     protocol  = "tcp"
     cidr_blocks = [
-      "${aws_subnet.SN_pub_a.cidr_block}",
-      "${aws_subnet.SN_pri_b.cidr_block}",
+      "${aws_subnet.SN_pub_a.cidr_block}"
+    ]
+  }
+  ingress {
+    from_port = 9090
+    to_port   = 9090
+    protocol  = "tcp"
+    cidr_blocks = [
+      "10.142.1.15/32"
+    ]
+  }
+  ingress {
+    from_port = 3100
+    to_port   = 3100
+    protocol  = "tcp"
+    cidr_blocks = [
+      "${aws_subnet.SN_pri_b.cidr_block}"
+    ]
+  }
+  ingress {
+    from_port = 5040
+    to_port   = 5040
+    protocol  = "tcp"
+    cidr_blocks = [
       "${aws_subnet.SN_pri_c.cidr_block}"
     ]
   }

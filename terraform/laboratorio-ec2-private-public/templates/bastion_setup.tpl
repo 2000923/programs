@@ -12,4 +12,14 @@ do
 done
 
 # Install required OS dependencies
-yum -y install ansible telnet
+yum -y install ansible-core telnet squid firewalld net-tools vim
+sed -rie "/(^#|^$)/d" /etc/squid/squid.conf
+systemctl start squid
+systemctl enable squid
+systemctl start firewalld
+firewall-cmd --permanent --add-port="3128/tcp" --zone="public"
+firewall-cmd --reload
+sudo -u rocky bash << EOF
+ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install community.general
+EOF

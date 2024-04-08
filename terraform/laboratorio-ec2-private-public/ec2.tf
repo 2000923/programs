@@ -70,7 +70,7 @@ resource "aws_network_interface" "ens2" {
 }
 
 resource "aws_instance" "node01" {
-  ami           = "ami-0c101f26f147fa7fd"
+  ami           = "ami-08f362c39d03a4eb5"
   instance_type = "t2.small"
   key_name      = aws_key_pair.KP-ssh.id
   network_interface {
@@ -84,7 +84,7 @@ resource "aws_instance" "node01" {
 }
 
 resource "aws_instance" "node02" {
-  ami           = "ami-0c101f26f147fa7fd"
+  ami           = "ami-08f362c39d03a4eb5"
   instance_type = "t2.small"
   key_name      = aws_key_pair.KP-ssh.id
   network_interface {

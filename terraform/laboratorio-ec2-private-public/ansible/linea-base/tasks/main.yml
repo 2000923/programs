@@ -3,12 +3,23 @@
   changed_when: false
   ansible.builtin.package:
     update_cache: true
+  environment: "{{ proxy_env | default(omit) }}"
+
+- name: Install packages minimal
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  environment: "{{ proxy_env | default(omit) }}"
+  loop:
+    - firewalld
+    - telnet
 
 - name: Activar servicio firewalld
   when: ansible_os_family == "RedHat"
   ansible.builtin.service:
     name: firewalld
     state: started
+    enabled: true
 
 - name: Deshabilitar servicio cockpit.socket
   when: ansible_os_family == "RedHat"
@@ -16,6 +27,7 @@
     name: cockpit.socket
     state: stopped
     enabled: false
+  failed_when: false
 
 - name: Captura de datos a nivel de firewalld cuando la zona es publica
   ansible.builtin.command:
@@ -145,15 +157,23 @@
     - { zone: "servicio", port: "9100/tcp" }
     - { zone: "backup", port: "5040/tcp" }
 
-# - name: Remove interface zone from public
-#  ansible.builtin.command:
-#    cmd: firewall-cmd --zone="public" --remove-interface="{{ item }}" --permanent
-#  register: firewall_remove_interface
-#  changed_when: firewall_remove_interface.rc != 0
-#  loop:
-#    - "{{ eth0 }}"
-#    - "{{ eth1 }}"
-#    - "{{ eth2 }}"
+- name: Remove interface zone from public
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  loop:
+    - "{{ eth0 }}"
+    - "{{ eth1 }}"
+    - "{{ eth2 }}"
+  changed_when: false
+
+- name: Remove interface zone from public
+  ansible.builtin.command:
+    cmd: firewall-cmd --zone="public" --remove-interface="{{ item }}"
+  loop:
+    - "{{ eth0 }}"
+    - "{{ eth1 }}"
+    - "{{ eth2 }}"
+  changed_when: false
 
 # En caso de no aginar definir la zona por defecto y si cumple con todos los puertos bloequeados
 - name: Set zone for interface
@@ -174,6 +194,7 @@
   ansible.builtin.package:
     name: chrony
     state: present
+  environment: "{{ proxy_env | default(omit) }}"
 
 - name: Configurar el servidor NTP
   ansible.builtin.template:
@@ -288,6 +309,7 @@
       changed_when: false
       ansible.builtin.package:
         update_cache: true
+      environment: "{{ proxy_env | default(omit) }}"
 
     - name: Instalar docker
       ansible.builtin.yum:
@@ -295,6 +317,8 @@
         state: present
       loop:
         - docker-ce
+        - git
+      environment: "{{ proxy_env | default(omit) }}"
 
     - name: Activar servicio de docker
       ansible.builtin.service:
@@ -308,16 +332,12 @@
         groups: docker
         append: true
 
-    - name: Instalar git en "{{ ansible_hostname }}"
-      ansible.builtin.package:
-        name: git
-        state: present
-
     - name: Instalar Docker-Compose en servidor remoto
       ansible.builtin.get_url:
         url: "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
         dest: /usr/local/bin/docker-compose
         mode: "0755"
+      environment: "{{ proxy_env | default(omit) }}"
 
     - name: Generar cadena aleatoria
       ansible.builtin.shell:
@@ -337,4 +357,5 @@
         dest: /scripts/{{ random_name.stdout }}
         remote: master
         version: HEAD
-      notify: restarted_sshd
+      notify: restart_sshd
+      environment: "{{ proxy_env | default(omit) }}"
