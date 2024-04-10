@@ -8,13 +8,34 @@
       ansible.builtin.service:
         name: subsonic
         state: stopped
-      ignore_errors: true
+      failed_when: 1 == 2
+
+    - name: Check the process in remote server
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          ps -fea|grep subsonic-booter|grep -v grep|awk -F " " '{print $2}' | uniq
+      register: subsonic_booter
+      changed_when: false
+      failed_when: 1 == 2
+      args:
+        executable: /bin/bash
+    - name: Debug
+      ansible.builtin.debug:
+        var: subsonic_booter
+
+    - name: Kill the process
+      ansible.builtin.command:
+        cmd: kill -s 9 {{ item }}
+      changed_when: false
+      loop:
+        - subsonic_booter.stdout
 
     - name: Remove the package
       ansible.builtin.apt:
         name: subsonic
         state: absent
-      ignore_errors: true
+      failed_when: false
 
     - name: Remove directory subsonic
       ansible.builtin.file:

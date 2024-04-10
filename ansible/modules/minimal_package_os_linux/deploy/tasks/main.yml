@@ -13,7 +13,7 @@
 - name: Define ip assigned a hostname.subdomain
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    line: "{{ ansible_default_ipv4.address }}\t {{ inventory_hostname }}.{{ domain }}"
+    line: "{{ ansible_default_ipv4.address }}\t {{ inventory_hostname }}.{{ domain | default('localdomain') }}"
     state: present
   when: inventory_hostname is defined
   failed_when: 1 == 2
