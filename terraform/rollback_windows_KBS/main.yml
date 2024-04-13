@@ -1,0 +1,16 @@
+---
+- name: Install KB from local
+  hosts: windows_hosts
+  vars:
+    kb_path: 'C:\\temp\\windows11.0-kb5036620-x64-ndp481_8d9e9e98b1edcb7e74e3e7365f6ec55dcb8bf3c4.msu'
+  tasks:
+    - name: Install KB update from local directory
+      ansible.windows.win_package:
+        path: "{{ kb_path }}"
+        arguments: "/quiet /norestart"
+      register: kb_installation
+
+    - name: Check installation result
+      ansible.builtin.debug:
+        msg: "The KB update was installed successfully"
+      when: kb_installation is succeeded

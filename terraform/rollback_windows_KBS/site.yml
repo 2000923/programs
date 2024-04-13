@@ -1,0 +1,8 @@
+---
+- name: Verificar conectividad con hosts de Windows
+  hosts: windows_hosts
+  tasks:
+    - name: Verificar conectividad con el host de Windows
+      ansible.windows.win_ping:
+      become: true
+      become_user: "{{ ansible_user }}"

@@ -49,7 +49,7 @@
     path: /etc/vault.txt
     line: "{{ vault_password }}"
     state: present
-  ignore_errors: true
+  failed_when: false
 
 - name: Create the file for user become
   ansible.builtin.file:
@@ -64,4 +64,4 @@
     path: /etc/user.txt
     line: "{{ become_password }}"
     state: present
-  ignore_errors: true
+  failed_when: false

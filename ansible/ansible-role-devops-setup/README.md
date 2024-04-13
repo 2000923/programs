@@ -123,6 +123,7 @@ c. AL finalizar de ejecutar el paso a paso o el script install_prerequisites.sh 
 ```shell
 ansible-galaxy collection install community.general
 ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install ansible.windows
 ```
 
 d. Ejecutar el playbook

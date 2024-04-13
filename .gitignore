@@ -258,6 +258,7 @@ __pycache__/
 *.a
 *.so
 *.exe
+*.msu
 *.dll
 *.class
 *.jar
@@ -321,3 +322,10 @@ config
 *.pub
 private.yml
 .cache_*
+
+# Zip compress 
+*.rar
+*.zip
+*.tar.gz
+*.tar
+*.7z
