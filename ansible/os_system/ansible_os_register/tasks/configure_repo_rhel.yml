@@ -1,0 +1,15 @@
+---
+- name: Configure repo in the positiva clients
+  ansible.builtin.shell: |
+    set -o pipefail
+    subscription-manager remove --all
+    subscription-manager unregister
+    subscription-manager clean
+    yum remove -y katello*
+    rm -rfv /etc/yum.repos.d/redhat.repo
+    sleep 5
+  register: shell_rc
+  changed_when: shell_rc.rc != 0
+  environment:
+    http_proxy: "{{ proxy | default(omit) }}"
+    https_proxy: "{{ proxy | default(omit) }}"

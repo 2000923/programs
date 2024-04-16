@@ -1,0 +1,55 @@
+---
+- name: Change password authentication for root
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "root:password" | chpasswd
+  register: root_password
+  changed_when: root_password.rc != 0
+  args:
+    executable: /bin/bash
+
+- name: Install packages into Redhat
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - cockpit
+  when:
+    - ansible_distribution == "RedHat"
+    - ansible_distribution_major_version | int > 7
+
+- name: Enable and started services
+  when:
+    - ansible_distribution == "RedHat"
+    - ansible_distribution_major_version | int > 7
+  ansible.builtin.service:
+    name: cockpit
+    enabled: true
+  notify: start cockpit
+
+- name: Change language of keyboard us/es
+  when: ansible_os_family == "Debian"
+  ansible.builtin.lineinfile:
+    path: /etc/default/keyboard
+    regexp: "XKBLAYOUT=*"
+    line: 'XKBLAYOUT="es"'
+  register: change_keyboard
+  notify: Execute setupcon
+
+- name: Change enviroment in rhel
+  when:
+    - ansible_os_family == "RedHat"
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: "^LANG=.*", line: "LANG=en_US.utf-8" }
+    - { regexp: "^LC_ALL=.*", line: "LC_ALL=en_US.utf-8" }
+
+- name: Remove ip asigned
+  ansible.builtin.lineinfile:
+    path: "{{ file_known_hosts }}"
+    regexp: "^{{ remove_ip }}.*"
+    state: absent
+  delegate_to: localhost

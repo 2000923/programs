@@ -1,0 +1,20 @@
+---
+- name: Install pkg generic epel for CentOS
+  when: ansible_distribution != "RedHat"
+  ansible.builtin.include_tasks:
+    file: linux-redhat-software-epel.yml
+
+- name: Install packages generic to rhel
+  ansible.builtin.package:
+    name: "{{ packages[ansible_os_family].base }}"
+    state: present
+
+- name: Instalar software esencial en Redhat/Centos/Oracle
+  ansible.builtin.yum:
+    name: "{{ packages[ansible_os_family][ansible_distribution_major_version | int] }}"
+    state: present
+
+- name: Remover software innecesario
+  ansible.builtin.yum:
+    name: libvirt-daemon
+    state: absent

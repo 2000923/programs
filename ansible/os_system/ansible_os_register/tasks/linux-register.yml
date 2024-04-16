@@ -1,0 +1,4 @@
+---
+- name: Include the os system
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_os_family }}.yml"

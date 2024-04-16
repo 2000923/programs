@@ -1,0 +1,177 @@
+---
+- name: Hardening de cuentas de usuario
+  block:
+    - name: Configurar duracion maxima de clave
+      ansible.builtin.replace:
+        path: /etc/login.defs
+        regexp: "(^PASS_MAX_DAYS).*$"
+        replace: '\1\t{{ maxpassage }}'
+
+    - name: Configurar duracion minima de clave
+      ansible.builtin.replace:
+        path: /etc/login.defs
+        regexp: "(^PASS_MIN_DAYS).*$"
+        replace: '\1\t{{ minpassage }}'
+
+    - name: Configurar longitud minima de clave
+      ansible.builtin.replace:
+        path: /etc/login.defs
+        regexp: "(^PASS_MIN_LEN).*$"
+        replace: '\1\t{{ minpasslen }}'
+
+    - name: Configurar dias de advertencia por expiracion de clave
+      ansible.builtin.replace:
+        path: /etc/login.defs
+        regexp: "(^PASS_WARN_AGE).*$"
+        replace: '\1\t{{ passwarnage }}'
+
+- name: Ajustes SSH en base a las recomendaciones de CIS
+  block:
+    - name: Configurar template de banner SSH
+      ansible.builtin.template:
+        src: templates/ssh_banner.txt.j2
+        dest: /etc/ssh/banner.txt
+        mode: "0644"
+
+    - name: Habilitar Log Level
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?(LogLevel)\s+.*$'
+        replace: '\1 VERBOSE'
+
+    - name: Deshabilitar root Login
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: "^#?(PermitRootLogin).*"
+        replace: '\1 no'
+
+    - name: Habilitar PAM
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?(UsePAM)\s+.*$'
+        replace: '\1 yes'
+
+    - name: Configurar SSH - Banner
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^Banner.*"
+        line: "Banner /etc/ssh/banner.txt"
+
+    - name: Asegurar que este deshabilitado el password en blanco
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?(PermitEmptyPasswords)\s+.*$'
+        replace: '\1 no'
+        validate: /usr/sbin/sshd -tf %s
+
+    - name: Configurar puerto por defecto
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?(Port)\s22$'
+        replace: '\1 22'
+
+    - name: Configurar Puerto 2222
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        insertafter: '^#?Port\s+22$'
+        line: "Port 2222"
+        state: present
+
+    - name: Configurar SSH - Deshabilitar consultas DNS
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^UseDNS.*"
+        line: "UseDNS no"
+
+    - name: Configurar SSH - Ajustes de keepalive 1
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^ClientAliveInterval"
+        line: "ClientAliveInterval 30"
+
+    - name: Configurar SSH - Ajustes de keepalive 2
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^ClientAliveCountMax"
+        line: "ClientAliveCountMax 5"
+
+    - name: Change password authentication of no/yes
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^(PasswordAuthentication)\s+no$'
+        replace: '\1 yes'
+        validate: /usr/sbin/sshd -tf %s
+      notify:
+        - Restart_ssh
+
+- name: Habilitar Secondary Logging
+  block:
+    - name: Crear directorio de historial de comandos
+      ansible.builtin.file:
+        path: /var/log/history
+        mode: "1777"
+        state: directory
+
+    - name: Asegurarse que exista directorio de scripts
+      ansible.builtin.file:
+        path: /scripts
+        mode: "0755"
+        state: directory
+        owner: root
+        group: root
+
+    - name: Copiar scripts de registro de historial de comandos
+      ansible.builtin.template:
+        src: "{{ item }}"
+        mode: "0755"
+        dest: /scripts
+      with_items:
+        - files/history-log.sh
+        - files/compress-history-log.sh
+
+    - name: Configurar cron para comprimir logs de historial de comandos
+      ansible.builtin.template:
+        src: templates/compress-history-log.cron
+        dest: /etc/cron.d
+        mode: "0644"
+
+    - name: Configurar registro de historial de comandos en bash de SUSE o Debian/Ubuntu
+      ansible.builtin.lineinfile:
+        path: /etc/{{ "bash.bashrc" if ( ansible_os_family == "Suse" or ansible_os_family == "Debian" ) else "bashrc" }}
+        state: present
+        regexp: '^\. /scripts/history-log.sh'
+        line: ". /scripts/history-log.sh"
+
+- name: Configurar Firewall and Selinux para RedHat family
+  when:
+    - ansible_os_family == "RedHat"
+  block:
+    - name: Habilitar Selinux
+      when:
+        - selinux
+      ansible.posix.selinux:
+        state: enforcing
+        policy: targeted
+
+    - name: Permitir sshd escuche en el port 2222/tcp
+      community.general.seport:
+        ports: 2222
+        proto: tcp
+        setype: ssh_port_t
+        state: present
+
+    - name: Habilitar firewall
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Añadir Puertos minimos de admnistracion
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        state: enabled
+        permanent: true
+        immediate: true
+      loop:
+        - 22/tcp
+        - 2222/tcp

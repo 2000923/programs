@@ -1,0 +1,37 @@
+---
+- name: Standar vm with programs and accounts
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Up values for subscription
+      when: ansible_distribution in ['RedHat', 'SLES', 'SLES_SAP']
+      ansible.builtin.include_tasks:
+        file: password.yml
+
+    - name: Subscribe the os
+      ansible.builtin.include_role:
+        name: ansible_os_register
+      when: os_register_username is defined
+
+    - name: Install software base
+      ansible.builtin.include_role:
+        name: ansible_os_baseline
+
+    - name: Create users systems and generic
+      ansible.builtin.include_role:
+        name: ansible_os_users
+
+    - name: Configure tools to monitoring
+      ansible.builtin.include_role:
+        name: ansible_os_monitoring
+
+    - name: Apply hardening to remote server
+      ansible.builtin.include_role:
+        name: ansible_os_hardening
+
+  #  - include_role:
+  #      name: os_line_register_vagrant
+  #    when: disabled == 'true'
+  #    vars:
+  #      os_register_state: absent

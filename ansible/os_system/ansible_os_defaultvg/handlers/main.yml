@@ -1,0 +1,18 @@
+- name: Restart sshd
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+
+- name: start cockpit
+  when:
+    - ansible_distribution == "RedHat"
+    - ansible_distribution_major_version | int > 7
+  ansible.builtin.service:
+    name: cockpit
+    state: started
+
+- name: Execute setupcon
+  ansible.builtin.command:
+    cmd: setupcon
+  register: setupcon_rst
+  changed_when: setupcon_rst.rc != 0

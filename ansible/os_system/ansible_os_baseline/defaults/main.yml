@@ -1,0 +1,153 @@
+---
+path_wmf51forwin8: software-iac/windows/updates/Win8.1AndW2K12R2-KB3191564-x64.msu
+
+packages:
+  default:
+    - at
+    - bzip2
+    - iotop
+    - net-tools
+    - nmap
+    - perl
+    - procps
+    - psmisc
+    - rsync
+    - sysstat
+    - tcpdump
+    - telnet
+    - traceroute
+    - unzip
+    - vim
+    - vsftpd
+    - wget
+    - zip
+    - tree
+
+  RedHat:
+    base:
+      - "@Base"
+      - bind-utils
+      - dos2unix
+      - lftp
+      - net-snmp
+      - net-snmp-libs
+      - net-snmp-utils
+      - perl-Compress-Raw-Zlib
+      - perl-Date-Manip
+      - perl-Digest-SHA
+      - perl-libs
+      - yum-utils
+      - '{{ "lsscsi" if ansible_distribution != "Amazon" }}'
+      - '{{ "tigervnc-server" if ansible_distribution != "Amazon" }}'
+      - policycoreutils-python
+
+    7:
+      - adcli
+      - finger
+      - firewalld
+      - iptraf-ng
+      - krb5-workstation
+      - libselinux-python
+      - MySQL-python
+      - ntp
+      - ntpdate
+      - oddjob
+      - oddjob-mkhomedir
+      - open-vm-tools
+      - open-vm-tools-desktop
+      - openldap-clients
+      - perl-Compress-Raw-Bzip2
+      - perl-DateTime
+      - perl-IO-Compress
+      - perl-LWP-Protocol-https
+      - perl-Sys-Syslog
+      - realmd
+      - samba-common
+      - samba-common-tools
+      - sssd
+      - tmux
+      - util-linux
+      - redhat-lsb
+
+    8:
+      - adcli
+      - chrony
+      - dnf-utils
+      - firewalld
+      - iptraf-ng
+      - krb5-workstation
+      - ncurses-compat-libs
+      - oddjob
+      - oddjob-mkhomedir
+      - open-vm-tools
+      - open-vm-tools-desktop
+      - openldap-clients
+      - perl-Compress-Raw-Bzip2
+      - perl-IO-Compress
+      - perl-LWP-Protocol-https
+      - perl-Sys-Syslog
+      - python3-libselinux
+      - python3-PyMySQL
+      - samba-common
+      - samba-common-tools
+      - util-linux
+      - tmux
+      - redhat-lsb
+
+    9:
+      - initial-setup-gui
+      - tmux
+      - iptraf-ng
+      - krb5-workstation
+      - open-vm-tools
+      - open-vm-tools-desktop
+      - openldap-clients
+      - perl-LWP-Protocol-https
+      - python3-PyMySQL
+      - samba-common-tools
+
+  SLES:
+    - bc
+    - bind-utils
+    - lftp
+    - net-snmp
+    - chrony
+    - tigervnc
+    - unrar
+    - lsof
+    - cron
+    - mailx
+
+  Debian:
+    - bc
+    - bsdmainutils
+    - ccze
+    - finger
+    - host
+    - lsscsi
+    - libdate-manip-perl
+    - nmon
+    # - ntp
+    - ntpdate
+    - python3-pip
+    - screen
+    - snmp
+    - snmpd
+
+  Amazon:
+    2018:
+      - finger
+      - iptraf
+      - libselinux-python
+      - ntp
+      - ntpdate
+      - perl-DateTime
+      - perl-LWP-Protocol-https
+      - perl-Sys-Syslog
+      - screen
+
+    2:
+      - firewalld
+      - procps-ng
+      - system-lsb
+      - tmux

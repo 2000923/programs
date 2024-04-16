@@ -1,0 +1,4 @@
+---
+# tasks file for deploy
+- name: Apply register subscription fot system operating
+  ansible.builtin.include_tasks: linux-register.yml

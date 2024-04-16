@@ -1,0 +1,16 @@
+---
+# Para imagenes con vagrant 12
+- name: Install missing packages
+  when:
+    - ansible_distribution_major_version | int == 12
+  ansible.builtin.raw: zypper install -y python-xml gettext-runtime
+  register: values_null
+  changed_when: values_null.rc != 0
+
+- name: Remove packages gettext-runtime-mini sles 12
+  when:
+    - ansible_distribution_major_version | int == 12
+  ansible.builtin.raw: zypper --non-interactive remove gettext-runtime-mini
+  ignore_errors: true
+  register: new_values
+  changed_when: new_values.rc != 0

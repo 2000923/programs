@@ -1,0 +1,2 @@
+selinux: "{{ is_enable_selinux | default(true) }}"
+port_ssh: "{{ add_port_ssh | default('22') }}"

@@ -1,0 +1,33 @@
+# Configuraciones base
+Defaults log_year
+Defaults loglinelen=0
+Defaults logfile=/var/log/sudo.log
+Defaults syslog=auth
+Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin
+Defaults !visiblepw
+Defaults !requiretty
+Defaults always_set_home
+Defaults env_reset
+Defaults env_keep =  "COLORS DISPLAY HOSTNAME HISTSIZE KDEDIR LS_COLORS"
+Defaults env_keep += "MAIL PS1 PS2 QTDIR USERNAME LANG LC_ADDRESS LC_CTYPE"
+Defaults env_keep += "LC_COLLATE LC_IDENTIFICATION LC_MEASUREMENT LC_MESSAGES"
+Defaults env_keep += "LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER LC_TELEPHONE"
+Defaults env_keep += "LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY"
+
+# Incluir alias de comandos y otras configuraciones separadas
+#includedir /etc/sudoers.d
+
+# Alias de grupos y usuarios
+User_Alias USR_ROOT = %user_admin, %wheel, %sudo, root
+#User_Alias USR_BKP = %user_bkp
+# User_Alias USR_DBA = %user_dba
+#User_Alias USR_MNT = %user_mnt
+# User_Alias USR_OPE = %user_ope
+#User_Alias USR_SAP = %user_sap
+
+# Permisos
+USR_ROOT	ALL=(ALL)	NOPASSWD: ALL
+USR_BKP		ALL=(ALL)	NOPASSWD: CMD_BKP
+USR_MNT		ALL=(ALL)	NOPASSWD: CMD_MNT
+USR_SAP		ALL=(ALL)	NOPASSWD: CMD_SAP
+# USR_DBA		ALL=(ALL)	NOPASSWD: CMD_DBA

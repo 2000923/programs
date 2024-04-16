@@ -1,0 +1,9 @@
+---
+- name: Softwarefor amazon
+  ansible.builtin.include_tasks:
+    file: linux-amazon-software-installation.yml
+
+- name: Instalar software esencial en Amazon 2
+  ansible.builtin.package:
+    name: "{{ packages[ansible_distribution][ansible_distribution_major_version | int] }}"
+    state: present

@@ -1,0 +1,229 @@
+---
+- name: Create necessary directory to copy shell scripts
+  ansible.builtin.file:
+    state: directory
+    path: "{{ item }}"
+    mode: "0755"
+    owner: root
+    group: root
+  with_items:
+    - /scripts
+    - /nmondir
+
+- name: Copiar archivos para el monitoreo de memoria - swap - ram
+  ansible.builtin.copy:
+    src: "./scripts/bash/{{ item }}"
+    dest: /usr/local/bin/{{ item.split('.')[0] }}
+    mode: "0755"
+  with_items:
+    - check_mem_ram.sh
+    - check_mem_swap.sh
+    - check_cpu.sh
+    - check_disk.sh
+
+# - name: Copiar archivos para el monitoreo de cpu
+#   ansible.builtin.copy:
+#     src: "./scripts/bash/{{item}}"
+#     dest: /usr/local/bin/check_cpu
+#     mode: "0755"
+#   with_items:
+#     - check_cpu.sh
+
+# - name: Copiar archivos para el monitoreo de disco
+#   ansible.builtin.copy:
+#     src: "./scripts/bash/{{ item }}"
+#     dest: /usr/local/bin/check_disk
+#     mode: 0755
+#   with_items:
+#     - check_disk.sh
+
+- name: Validar si systat está instalado
+  ansible.builtin.command: wchich sar
+  failed_when: 1 == 2
+  register: systat_resource
+  changed_when: systat_resource.rc != 0
+
+- name: Activar cron de sysstat en Debian/Ubuntu
+  ansible.builtin.lineinfile:
+    path: /etc/default/sysstat
+    regexp: "^ENABLED"
+    line: 'ENABLED="true"'
+  when:
+    - ansible_os_family == 'Debian'
+    - systat_resource.rc == 0
+  notify: restart_sysstat
+
+- name: Activar cron de sysstat en SUSE
+  ansible.builtin.file:
+    path: /etc/cron.d/sysstat.cron
+    src: /etc/sysstat/sysstat.cron
+    state: link
+  when:
+    - ansible_os_family == 'Suse'
+    - systat_resource.rc == 0
+  notify: restart_sysstat
+
+- name: Nmon install for debian family
+  when: ansible_os_family == "Debian"
+  ansible.builtin.package:
+    name: nmon
+    state: present
+  register: nmon_install
+
+- name: Nmon Binary for x86_64
+  when: ansible_architecture == "x86_64"
+  block:
+    - name: Copiar binario de nmon en SUSE 11
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon16g_x86_sles114"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when:
+        - ansible_os_family == 'Suse'
+        - ansible_distribution_major_version|int == 11
+
+    - name: Copiar binario de nmon en SUSE 12
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon16g_x86_sles12"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when:
+        - ansible_os_family == 'Suse'
+        - ansible_distribution_major_version|int == 12
+
+    - name: Copiar binario de nmon en SUSE 15
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon_x86_64_sles15"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when:
+        - ansible_os_family == 'Suse'
+        - ansible_distribution_major_version|int == 15
+
+    - name: Copiar binario de nmon en RedHat/CentOS 6
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon16g_rhel6"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when:
+        (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int == 6 ) or
+        (ansible_distribution == "Amazon" and ansible_distribution_major_version|int != 2 )
+
+    - name: Copiar binario de nmon en RedHat/CentOS 7
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon16g_x86_rhel72"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when:
+        ( ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 7 ) or
+        ( ansible_distribution == "Amazon" and ansible_distribution_major_version|int == 2 )
+
+    - name: Copiar binario de nmon en RedHat/CentOS 8
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon16m_x86_64_rhel8"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when: ( ansible_os_family == "RedHat" and ansible_distribution_major_version|int >= 8 )
+
+- name: Nmon Binary for ppc64le
+  when: ansible_architecture == "ppc64le"
+  block:
+    - name: Copiar binario de nmon en SUSE 12
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon16g_power_sles122"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when:
+        - ansible_os_family == 'Suse'
+        - ansible_distribution_major_version|int == 12
+
+    - name: Copiar binario de nmon en SUSE 15
+      ansible.builtin.copy:
+        src: "./software-iac/linux/nmon/nmon_power_sles15"
+        dest: /usr/local/bin/nmon
+        mode: "0755"
+      when:
+        - ansible_os_family == 'Suse'
+        - ansible_distribution_major_version|int == 15
+
+- name: Crear cron de nmon
+  ansible.builtin.template:
+    src: nmon.cron
+    dest: /etc/cron.d
+    mode: "0644"
+
+- name: Copiar script de reportes de nmon
+  ansible.builtin.template:
+    src: reportes.sh
+    dest: /scripts
+    mode: "0755"
+
+- name: Configurar script de arranque de nmon en RHEL 6
+  ansible.builtin.lineinfile:
+    path: /etc/rc.d/rc.local
+    state: present
+    regexp: "^/scripts/reportes.sh -c -d"
+    line: "/scripts/reportes.sh -c -d"
+  when:
+    - ansible_os_family == 'Redhat'
+    - ( ansible_distribution_major_version|int != 2 or ansible_distribution_major_version|int == 6 )
+
+- name: Configurar script de arranque de nmon en SUSE 11
+  ansible.builtin.lineinfile:
+    path: /etc/rc.d/boot.local
+    state: present
+    regexp: "^/scripts/reportes.sh -c -d"
+    line: "/scripts/reportes.sh -c -d"
+  when:
+    - ansible_os_family == "Suse"
+    - ansible_distribution_major_version|int == 11
+
+- name: Configurar servicio systemd para nmon en Amazon 2, Debian/Ubuntu, RHEL 7 o SLES 12
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: /etc/systemd/system
+    mode: "0644"
+  loop:
+    - templates/nmon-daily.service
+    - templates/nmon-monthly.service
+  when: ansible_service_mgr is defined
+
+- name: Habilitar servicio systemd para nmon en Amazon 2, Debian/Ubuntu, RHEL 7 o SLES 12
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+  with_items:
+    - nmon-daily.service
+    - nmon-monthly.service
+  when: ansible_service_mgr is defined
+
+- name: Copiar scripts de monitoreo de memoria y paginacion
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /scripts
+    mode: "0755"
+  with_items:
+    - ./scripts/bash/memuso.sh
+    - ./scripts/bash/paginguso.sh
+
+- name: Verificar que exista archivo snmpd.conf
+  ansible.builtin.stat:
+    path: /etc/snmp/snmpd.conf
+  register: snmpd_result
+
+- name: Configurar agente SNMP en snmpd.conf
+  when: snmpd_result.stat.exists == true
+  block:
+    - name: Configurar OID personalizada para monitoreo de memoria
+      ansible.builtin.lineinfile:
+        path: /etc/snmp/snmpd.conf
+        state: present
+        regexp: "^extend.*memuso"
+        line: "extend memuso /scripts/memuso.sh"
+
+    - name: Configurar OID personalizada para monitoreo de actividad de paginacion
+      ansible.builtin.lineinfile:
+        path: /etc/snmp/snmpd.conf
+        state: present
+        regexp: "^extend.*paginguso"
+        line: "extend paginguso /scripts/paginguso.sh"

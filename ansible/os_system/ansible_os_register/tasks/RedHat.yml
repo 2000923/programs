@@ -1,0 +1,28 @@
+---
+- name: Check the suscription command
+  failed_when: 1 == 2
+  ansible.builtin.command:
+    cmd: which subscription-manager
+  register: value_sm
+  changed_when: value_sm.rc != 0
+
+- name: Check subscription for RedHat
+  when: value_sm.rc == 0
+  ansible.builtin.shell: |
+    set -o pipefail
+    subscription-manager list |grep -iE ^status\:[[:blank:]]+|tr -d " " | awk -F ":" '{print $2}'
+  register: subscription_status
+  changed_when: subscription_status.rc != 0
+
+- name: Registry of Red Hat Enterprise Linux Server
+  community.general.redhat_subscription:
+    username: "{{ os_register_username }}"
+    password: "{{ os_register_password }}"
+    auto_attach: true
+    force_register: true
+  when:
+    - subscription_status.stdout in ["Not Registered", "Unknown", "NotSubscribed", "Not Subscribed"]
+    - os_register_username is defined
+    - os_register_username|length > 0
+    - os_register_password is defined
+    - os_register_password|length >0

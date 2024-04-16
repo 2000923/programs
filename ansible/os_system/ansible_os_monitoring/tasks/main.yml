@@ -1,0 +1,8 @@
+---
+- name: Configurar monitoreo de Linux
+  ansible.builtin.include_tasks: linux-monitoring.yml
+  when: ansible_system == 'Linux'
+
+- name: Configurar monitoreo de Windows
+  ansible.builtin.include_tasks: windows-monitoring.yml
+  when: ansible_system == 'Win32NT'

@@ -1,0 +1,107 @@
+---
+- name: Update package cache repository from OS (RedHat)
+  when:
+    - ansible_os_family == "RedHat"
+  ansible.builtin.yum:
+    update_cache: true
+  register: check_yum
+  changed_when: check_yum.rc != 0
+
+- name: Update package cache for Zypper only
+  when: ansible_os_family == "SLES"
+  ansible.builtin.command:
+    cmd: "zypper refresh"
+  register: check_zypper
+  changed_when: check_zypper.rc != 0
+
+- name: Update package cache (Debian Family only)
+  when:
+    - ansible_os_family == "Debian"
+  ansible.builtin.command:
+    cmd: "apt update"
+  register: check_apt
+  changed_when: check_apt.rc != 0
+
+- name: Check the value check_apt is defined
+  when:
+    - check_apt.rc is defined
+  ansible.builtin.set_fact:
+    install_pkg: "{{ true if check_apt.rc == 0 else false }}"
+
+- name: Check the value check_yum is defined
+  when:
+    - check_yum.rc is defined
+  ansible.builtin.set_fact:
+    install_pkg: "{{ true if check_yum.rc == 0 else false }}"
+
+- name: Check the check_zypper value is defined
+  when:
+    - check_zypper.rc is defined
+  ansible.builtin.set_fact:
+    install_pkg: "{{ true if check_zypper.rc == 0 else false }}"
+
+- name: Install packages to Operative System
+  when: install_pkg
+  block:
+    - name: Include prerequisites to SO new
+      when: ansible_os_family == "Suse"
+      ansible.builtin.include_tasks: linux-prerequisites.yml
+
+    - name: Install generic package in redhat/debian/sles
+      ansible.builtin.package:
+        name: "{{ packages.default }}"
+        state: present
+
+    - name: Instalar software de Red Hat/CentOS
+      ansible.builtin.include_tasks: linux-redhat-software-installation.yml
+      when:
+        - ansible_os_family == "RedHat"
+
+    - name: Instalar software de Debian/Ubuntu
+      ansible.builtin.include_tasks: linux-debian-software-installation.yml
+      when:
+        - ansible_os_family == "Debian"
+
+    - name: Instalar software de SUSE
+      ansible.builtin.include_tasks: linux-suse-software-installation.yml
+      when: ansible_os_family == 'SLES'
+
+    - name: Instalar software de Amazon
+      ansible.builtin.include_tasks:
+        file: '{{ "linux-amazon-software-installation" if ansible_distribution_major_version | int !=2 else linux-amazon2-software-installation }}'
+      when: ansible_distribution == 'Amazon'
+
+    - name: Which the atd program
+      ansible.builtin.command:
+        cmd: which at
+      register: atd_find
+      changed_when: atd_find.rc != 0
+
+    - name: Habilitar servicio atd
+      when: atd_find.rc == 0
+      ansible.builtin.service:
+        name: atd
+        state: started
+        enabled: true
+      failed_when: 1 == 2
+
+- name: Personalizacion de parametros de kernel en RHEL/CentOS
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 7
+  block:
+    - name: Remover parametros rhgb y quiet en RHEL/CentOS
+      ansible.builtin.replace:
+        path: /etc/default/grub
+        regexp: "rhgb|quiet"
+      register: edit_grub
+
+    - name: Regenerar configuracion de grub
+      ansible.builtin.command:
+        cmd: grub2-mkconfig -o /boot/grub2/grub.cfg
+      register: reconf_grub
+      changed_when: reconf_grub.rc != 0
+
+- name: Configurar zona horaria a America/Lima
+  community.general.timezone:
+    name: America/Lima

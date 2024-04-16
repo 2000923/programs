@@ -1,0 +1,6 @@
+---
+- name: Instalar software esencial en Debian/Ubuntu
+  ansible.builtin.apt:
+    name: "{{ packages[ansible_os_family] }}"
+    state: present
+    update_cache: true

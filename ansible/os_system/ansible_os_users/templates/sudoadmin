@@ -1,0 +1,3 @@
+Defaults:{{item.user}} !fqdn
+Defaults:{{item.user}} !requiretty
+{{item.user}} ALL=(ALL) NOPASSWD: ALL

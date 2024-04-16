@@ -1,0 +1,134 @@
+---
+- name: Create groups for administration
+  ansible.builtin.group:
+    name: "{{ item }}"
+  with_items:
+    - acm_admin
+    - acm_user
+
+- name: Create master directory
+  ansible.builtin.file:
+    path: /home/{{ home_enterprice }}
+    state: directory
+    mode: "0755"
+
+- name: Create users and Administrator
+  ansible.builtin.user:
+    name: "{{ item.user }}"
+    comment: "{{ item.fullname }}"
+    group: "{{ 'acm_admin' if item.admin == True else 'acm_user' }}"
+    password: "{{ item.password | password_hash('sha512') }}"
+    create_home: true
+    home: /home/{{ home_enterprice }}/{{ item.user }}
+    shell: /bin/bash
+    update_password: on_create
+  with_items:
+    - "{{ generic_users }}"
+    - "{{ linux_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  ignore_errors: true
+  register: create_user_results
+
+- name: Eliminar usuarios antiguos y de otros proyectos
+  ansible.builtin.user:
+    name: "{{ item.user }}"
+    state: absent
+    force: true
+  with_items:
+    - "{{ nousers }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+
+- name: Configurar llaves privadas
+  ansible.posix.authorized_key:
+    user: "{{ item.split('/')[-1].split('.')[0] }}"
+    key: "{{ lookup('file', item) }}"
+  with_fileglob:
+    - files/*pub
+  loop_control:
+    label: "{{ item.split('/')[-1].split('.')[0] }}"
+
+- name: Solicitar cambio de clave en el primer inicio de sesion
+  ansible.builtin.command: chage -d 0 {{ item.user }}
+  loop: "{{ generic_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  register: command_change_password
+  changed_when: command_change_password.rc != 0
+  when: item.expiredpass
+
+- name: Deshabilitar expiracion de clave para usuarios especiales
+  ansible.builtin.command: chage -M 9999999 {{ item.user }}
+  loop: "{{ generic_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  register: command_change_expire
+  changed_when: command_change_expire.rc != 0
+  when: item.passneverexpires
+
+- name: Crear directorio ~/bin
+  ansible.builtin.file:
+    state: directory
+    path: /home/{{ home_enterprice }}/{{ item.user }}/bin
+    mode: "0755"
+    owner: root
+    group: root
+  loop: "{{ generic_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  when: item.cannotchangepass
+
+- name: Evitar que cambien su clave
+  ansible.builtin.template:
+    src: templates/passwd
+    dest: /home/{{ home_enterprice }}/{{ item.user }}/bin/passwd
+    mode: "0755"
+  loop: "{{ generic_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  when: item.cannotchangepass
+
+- name: Modificar PATH de usuario en ~/.bashrc
+  ansible.builtin.template:
+    src: templates/bashrc
+    dest: /home/{{ home_enterprice }}/{{ item.user }}/.bashrc
+    mode: "0644"
+  loop: "{{ generic_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  when: item.cannotchangepass
+
+- name: Asegurarse que exista /etc/sudoers.d
+  ansible.builtin.file:
+    state: directory
+    path: /etc/sudoers.d
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Configurar sudo para usuarios administradores
+  ansible.builtin.template:
+    src: sudoadmin
+    dest: /etc/sudoers.d/{{ item.user }}
+    mode: "0640"
+    validate: "/usr/sbin/visudo -cf %s"
+    backup: true
+  with_items:
+    - "{{ linux_users }}"
+    - "{{ generic_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  when: item.admin
+
+- name: Configurar sudo para usuarios no administradores
+  ansible.builtin.template:
+    src: unprivileged.j2
+    dest: /etc/sudoers.d/{{ item.user }}
+    mode: "0640"
+    validate: "/usr/sbin/visudo -cf %s"
+  with_items:
+    - "{{ generic_users }}"
+  loop_control:
+    label: "{{ item.user }} - {{ item.fullname }}"
+  when: not item.admin

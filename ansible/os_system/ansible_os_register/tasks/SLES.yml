@@ -1,0 +1,46 @@
+---
+- name: Check status of register SLES
+  failed_when: 1 == 2
+  ansible.builtin.command: SUSEConnect -s
+  register: suse_connect_result
+  changed_when: suse_connect_result.rc != 0
+
+- name: Save status of register in value
+  ansible.builtin.set_fact:
+    suseconnect_status: "{{ suse_connect_result.stdout | from_json | json_query('[*].status') | first if suse_connect_result.rc == 0 else 'Not Registered' }}"
+
+- name: Check subscription for SuSe not client
+  when: ansible_architecture != ppcle
+  block:
+    - name: Check subscription for SuSe not client and client ACEROS to x86-64 and ppcle
+      when:
+        - suseconnect_status == 'Not Registered'
+        - os_email|length > 0
+        - os_regcode|length > 0
+      ansible.builtin.shell: |
+        set -o pipefail
+        SUSEConnect -r {{ os_regcode }} -e {{ os_email }}
+      register: suseconnect_reg
+      changed_when: suseconnect_reg.rc != 0
+
+- name: Check for suse client with ppcle architecture
+  when:
+    - client == sles_client
+    - suseconnect_status == 'Not Registered'
+  block:
+    - name: Inscribir host de SMT en /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: "^{{ smt_ipaddr }}.*{{ smt_hostname }}"
+        line: "{{ smt_ipaddr }} {{ smt_hostname }}"
+
+    - name: Registro - Copiar script de SMT
+      ansible.builtin.copy:
+        src: files/{{ smt_script }}
+        dest: "{{ smt_script_path }}"
+        mode: "0755"
+
+    - name: Registro - Ejecutar proceso de registro
+      ansible.builtin.command: "{{ smt_script_path }} --host {{ smt_hostname }} --fingerprint {{ smt_fingerprint }} --yes"
+      register: smt_local
+      changed_when: smt_local.rc != 0

@@ -1,0 +1,3 @@
+---
+- name: Create users for admin OS
+  ansible.builtin.include_tasks: define_user_linux.yml
