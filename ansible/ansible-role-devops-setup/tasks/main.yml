@@ -18,7 +18,7 @@
   ansible.builtin.include_tasks:
     file: install_programs.yml
 
-- name: Configure firewall in local
+- name: Configure firewall in server remote
   ansible.builtin.include_tasks:
     file: configure_firewall.yml
 
@@ -26,7 +26,7 @@
   ansible.builtin.include_tasks:
     file: configure_enviroment.yml
 
-- name: Configure Users
+- name: Configure Users in remote server
   ansible.builtin.include_tasks:
     file: configure_users.yml
 
@@ -39,6 +39,7 @@
   loop:
     - ansible.posix
     - community.general
+    - ansible.windows
   args:
     executable: /usr/bin/fish
   environment:

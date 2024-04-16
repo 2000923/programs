@@ -67,6 +67,14 @@
         update: false
         version: master
 
+    - name: Install the tfenv in local
+      ansible.builtin.git:
+        repo: https://github.com/tfutils/tfenv.git
+        dest: ~/.tfenv
+        update: false
+        version: master
+        depth: 1
+
     - name: Change config the fish to exa
       ansible.builtin.lineinfile:
         path: "~/.config/fish/config-linux.fish"

@@ -1,4 +1,8 @@
 ---
+######################################
+# Install programs for all users in your operative system, this is with root user
+#
+#
 - name: Run the equivalent of "apt-get update"
   ansible.builtin.apt:
     update_cache: true
