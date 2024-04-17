@@ -8,3 +8,11 @@
   ansible.builtin.command: yum clean metadata
   args:
     warn: true
+  register: clean_metadata
+  changed_when: clean_metadata.rc != 0
+
+- name: restart_atd
+  ansible.builtin.service:
+    name: atd
+    state: restarted
+    enabled: true

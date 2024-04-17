@@ -12,6 +12,8 @@
     set -o pipefail
     subscription-manager list |grep -iE ^status\:[[:blank:]]+|tr -d " " | awk -F ":" '{print $2}'
   register: subscription_status
+  ignore_errors: true
+  failed_when: subscription_status.rc == 2
   changed_when: subscription_status.rc != 0
 
 - name: Registry of Red Hat Enterprise Linux Server

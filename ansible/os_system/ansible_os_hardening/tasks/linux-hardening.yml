@@ -70,13 +70,6 @@
         regexp: '^#?(Port)\s22$'
         replace: '\1 22'
 
-    - name: Configurar Puerto 2222
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        insertafter: '^#?Port\s+22$'
-        line: "Port 2222"
-        state: present
-
     - name: Configurar SSH - Deshabilitar consultas DNS
       ansible.builtin.lineinfile:
         path: /etc/ssh/sshd_config
@@ -153,25 +146,8 @@
         state: enforcing
         policy: targeted
 
-    - name: Permitir sshd escuche en el port 2222/tcp
-      community.general.seport:
-        ports: 2222
-        proto: tcp
-        setype: ssh_port_t
-        state: present
-
     - name: Habilitar firewall
       ansible.builtin.service:
         name: firewalld
         state: started
         enabled: true
-
-    - name: Añadir Puertos minimos de admnistracion
-      ansible.posix.firewalld:
-        port: "{{ item }}"
-        state: enabled
-        permanent: true
-        immediate: true
-      loop:
-        - 22/tcp
-        - 2222/tcp

@@ -1,0 +1,41 @@
+---
+- name: Update package cache repository from OS (RedHat)
+  when:
+    - ansible_os_family == "RedHat"
+  ansible.builtin.yum:
+    update_cache: true
+  register: check_yum
+  changed_when: check_yum.rc != 0
+
+- name: Update package cache for Zypper only
+  when: ansible_os_family == "SLES"
+  ansible.builtin.command:
+    cmd: "zypper refresh"
+  register: check_zypper
+  changed_when: check_zypper.rc != 0
+
+- name: Update package cache (Debian Family only)
+  when:
+    - ansible_os_family == "Debian"
+  ansible.builtin.command:
+    cmd: "apt update"
+  register: check_apt
+  changed_when: check_apt.rc != 0
+
+- name: Check the value check_apt is defined
+  when:
+    - check_apt.rc is defined
+  ansible.builtin.set_fact:
+    install_pkg: "{{ true if check_apt.rc == 0 else false }}"
+
+- name: Check the value check_yum is defined
+  when:
+    - check_yum.rc is defined
+  ansible.builtin.set_fact:
+    install_pkg: "{{ true if check_yum.rc == 0 else false }}"
+
+- name: Check the check_zypper value is defined
+  when:
+    - check_zypper.rc is defined
+  ansible.builtin.set_fact:
+    install_pkg: "{{ true if check_zypper.rc == 0 else false }}"

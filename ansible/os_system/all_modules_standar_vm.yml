@@ -3,6 +3,8 @@
   hosts: all
   become: true
   gather_facts: true
+  vars:
+    client: ""
   tasks:
     - name: Up values for subscription
       when: ansible_distribution in ['RedHat', 'SLES', 'SLES_SAP']

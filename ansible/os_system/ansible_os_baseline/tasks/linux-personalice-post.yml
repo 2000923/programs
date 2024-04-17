@@ -1,0 +1,47 @@
+---
+- name: Personalizacion de parametros de kernel en RHEL/CentOS
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 7
+  block:
+    - name: Remover parametros rhgb y quiet en RHEL/CentOS
+      ansible.builtin.replace:
+        path: /etc/default/grub
+        regexp: "rhgb|quiet"
+      register: edit_grub
+
+    - name: Regenerar configuracion de grub
+      register: reconf_grub
+      ansible.builtin.command:
+        cmd: grub2-mkconfig -o /boot/grub2/grub.cfg
+      changed_when: reconf_grub.rc != 0
+
+# - name: Add server to insights for redhat 8.0 - 8.3
+#   when:
+#     - ansible_distribution == 'RedHat'
+#     - ansible_distribution_major_version | int == 8
+#     - ansible_distribution_version.split(',')[1] >= 0 or ansible_distribution_version.split(',')[1] <=3
+#   register: insights_rg
+
+- name: Add server to insights
+  when:
+    - ansible_distribution == 'RedHat'
+    - ansible_distribution_major_version | int >= 8
+  block:
+    - name: Install
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          insights-client --register
+      register: insights
+      changed_when: insights.rc != 0
+
+    - name: Enable cockpit.socket
+      ansible.builtin.systemd:
+        name: cockpit
+        state: started
+        enabled: true
+
+- name: Configurar zona horaria a America/Lima
+  community.general.timezone:
+    name: America/Lima

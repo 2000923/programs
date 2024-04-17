@@ -39,7 +39,6 @@ packages:
       - yum-utils
       - '{{ "lsscsi" if ansible_distribution != "Amazon" }}'
       - '{{ "tigervnc-server" if ansible_distribution != "Amazon" }}'
-      - policycoreutils-python
 
     7:
       - adcli
@@ -68,6 +67,7 @@ packages:
       - tmux
       - util-linux
       - redhat-lsb
+      - policycoreutils-python
 
     8:
       - adcli
