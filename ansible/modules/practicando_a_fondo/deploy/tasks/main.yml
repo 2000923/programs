@@ -1,0 +1,24 @@
+---
+- name: Crear directorio script
+  ansible.builtin.file:
+    path: /scripts
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Desplegar script en remote server
+  ansible.builtin.template:
+    src: script_rhel_rhcsa.j2
+    dest: /scripts/script_rhcsa.sh
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Remove remote host identification ~/.ssh/authorized_keys
+  ansible.builtin.command:
+    cmd: ssh-keygen -f "~/.ssh/known_hosts" -R "{{ ansible_host }}"
+  register: cmd_modified
+  changed_when: cmd_modified.rc != 0
+  delegate_to: localhost
+  become: false
