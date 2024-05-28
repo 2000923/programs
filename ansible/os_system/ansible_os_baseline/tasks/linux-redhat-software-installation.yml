@@ -1,12 +1,18 @@
 ---
 - name: Install pkg generic epel for CentOS
-  when: ansible_distribution != "RedHat"
+  when:
+    - ansible_distribution != "RedHat"
   ansible.builtin.include_tasks:
     file: linux-redhat-software-epel.yml
 
-- name: Install packages generic to rhel
+- name: Install packages generic base to rhel
   ansible.builtin.package:
     name: "{{ packages[ansible_os_family].base }}"
+    state: present
+
+- name: Install packages generic common to rhel
+  ansible.builtin.package:
+    name: "{{ packages[ansible_os_family].common }}"
     state: present
 
 - name: Instalar software esencial en Redhat/Centos/Oracle

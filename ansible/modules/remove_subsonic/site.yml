@@ -20,16 +20,11 @@
       failed_when: 1 == 2
       args:
         executable: /bin/bash
-    - name: Debug
-      ansible.builtin.debug:
-        var: subsonic_booter
 
     - name: Kill the process
       ansible.builtin.command:
-        cmd: kill -s 9 {{ item }}
+        cmd: kill -s 9 {{ subsonic_booter.stdout }}
       changed_when: false
-      loop:
-        - subsonic_booter.stdout
 
     - name: Remove the package
       ansible.builtin.apt:

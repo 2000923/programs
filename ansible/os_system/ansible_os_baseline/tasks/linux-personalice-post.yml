@@ -28,13 +28,13 @@
     - ansible_distribution == 'RedHat'
     - ansible_distribution_major_version | int >= 8
   block:
-    - name: Install
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          insights-client --register
-      register: insights
-      changed_when: insights.rc != 0
+    #    - name: Install
+    #      ansible.builtin.shell:
+    #        cmd: |
+    #          set -o pipefail
+    #          insights-client --register
+    #      register: insights
+    #      changed_when: insights.rc != 0
 
     - name: Enable cockpit.socket
       ansible.builtin.systemd:

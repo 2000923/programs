@@ -11,14 +11,16 @@
   block:
     - name: Install generic package in redhat/debian/sles
       ansible.builtin.package:
-        name: "{{ packages.default }}"
+        name: "{{ packages.common }}"
         state: present
       notify: restart_atd
 
     - name: Instalar software de Red Hat/CentOS
       ansible.builtin.include_tasks:
         file: linux-redhat-software-installation.yml
-      when: ansible_os_family == "RedHat"
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_distribution != "Amazon"
 
     - name: Instalar software de Debian/Ubuntu
       ansible.builtin.include_tasks:

@@ -7,6 +7,14 @@
     owner: root
     group: root
 
+- name: Modificar DNS interno
+  ansible.builtin.replace:
+    regexp: "^#?(nameserver).*"
+    path: /etc/resolv.conf
+    replace: '\1 {{ ansible_dns_host }}'
+    owner: root
+    group: root
+
 - name: Desplegar script en remote server
   ansible.builtin.template:
     src: script_rhel_rhcsa.j2

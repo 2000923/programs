@@ -329,3 +329,6 @@ private.yml
 *.tar.gz
 *.tar
 *.7z
+
+# Inventory ansible
+inventory.ini

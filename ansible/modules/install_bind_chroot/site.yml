@@ -1,9 +1,11 @@
 ---
-- name: Deploy docker and docker-compose
+- name: Install bind - chroot in remote server
   hosts: all
   become: true
   gather_facts: true
+  vars:
+    domain: "labrhel.com"
   tasks:
-    - name: Install applications - Docker and Docker-compose
+    - name: Add role bind
       ansible.builtin.include_role:
         name: deploy

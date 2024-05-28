@@ -1,0 +1,27 @@
+---
+- name: Define Package for {{ ansible_os_family }}
+  block:
+    - name: When the package of RedHat
+      when: ansible_os_family == "RedHat"
+      ansible.builtin.package:
+        name: named
+        state: present
+
+    - name: When the package of Debian
+      when: ansible_os_family == "Debian"
+      ansible.builtin.package:
+        name: bind
+        state: present
+
+    - name: Copy the configuration in remote server for named
+      ansible.builtin.template:
+        src: named.conf.j2
+        dest: /etc/named.conf
+        owner: root
+        group: root
+        mode: "0644"
+        force: true
+        seuser: root
+        serole: system_ro
+        setype: object
+        selevel: linuxn

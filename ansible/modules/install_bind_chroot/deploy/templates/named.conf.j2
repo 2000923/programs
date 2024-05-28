@@ -1,0 +1,23 @@
+//Definicion de acls
+acl local { localhost; };
+acl lan { 192.168.0.0/16; };
+
+//Opciones de configuracion local
+options {
+  directory "/var/named;
+  forwarders {
+    8.8.8.8;
+    8.8.4.4;
+  }
+  forward first;
+  listen-on { 127.0.0.1; ansible_all_ipv4_addresses[1]; ansible_all_ipv4_addresses[2]; };
+  allow-query { local; };
+} 
+
+//configuración de logs
+logging { 
+  channel seguridad {
+    file "/var/log/named/seguridad.log"
+  };
+
+}

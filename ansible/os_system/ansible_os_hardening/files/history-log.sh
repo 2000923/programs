@@ -54,8 +54,7 @@ then
   shopt -s histappend
   touch $HISTFILE
   chmod 0600 $HISTFILE
-  
-  if echo $HISTFILE | grep -q "\-root\-"
+  if echo $HISTFILE | grep -q "\-root\-" 2>/dev/null
   then
     export PROMPT_COMMAND="history -a ; history -w"
   else

@@ -2,7 +2,7 @@
 path_wmf51forwin8: software-iac/windows/updates/Win8.1AndW2K12R2-KB3191564-x64.msu
 
 packages:
-  common:
+  default:
     - at
     - bzip2
     - iotop
@@ -38,80 +38,105 @@ packages:
       - perl-libs
       - yum-utils
       - firewalld
-    common:
-      - lsscsi
-      - tigervnc-server
-      - iptraf-ng
-      - krb5-workstation
-      - open-vm-tools
-      - open-vm-tools-desktop
-      - openldap-clients
-      - perl-Compress-Raw-Bzip2
-      - perl-LWP-Protocol-https
-      - samba-common-tools
-      - tmux
-      - util-linux
-      - redhat-lsb
+
     7:
       - adcli
+      - lsscsi
+      - tigervnc-server
       - finger
+      - iptraf-ng
+      - krb5-workstation
       - libselinux-python
       - MySQL-python
       - ntp
       - ntpdate
       - oddjob
       - oddjob-mkhomedir
+      - open-vm-tools
+      - open-vm-tools-desktop
+      - openldap-clients
+      - perl-Compress-Raw-Bzip2
       - perl-DateTime
       - perl-IO-Compress
+      - perl-LWP-Protocol-https
       - perl-Sys-Syslog
       - realmd
       - samba-common
+      - samba-common-tools
       - sssd
+      - tmux
+      - util-linux
+      - redhat-lsb
       - policycoreutils-python
+
     8:
       - adcli
+      - lsscsi
+      - tigervnc-server
       - chrony
       - dnf-utils
       - firewalld
+      - iptraf-ng
+      - krb5-workstation
       - ncurses-compat-libs
       - oddjob
       - oddjob-mkhomedir
+      - open-vm-tools
+      - open-vm-tools-desktop
+      - openldap-clients
+      - perl-Compress-Raw-Bzip2
+      - perl-IO-Compress
+      - perl-LWP-Protocol-https
+      - perl-Sys-Syslog
       - python3-libselinux
       - python3-PyMySQL
       - samba-common
-      - policycoreutils-python
+      - samba-common-tools
+      - util-linux
+      - tmux
+      - redhat-lsb
+
     9:
       - initial-setup-gui
+      - lsscsi
+      - tigervnc-server
+      - tmux
+      - iptraf-ng
+      - krb5-workstation
+      - open-vm-tools
+      - open-vm-tools-desktop
+      - openldap-clients
+      - perl-LWP-Protocol-https
       - python3-PyMySQL
+      - samba-common-tools
 
   SLES:
-    common:
-      - bc
-      - bind-utils
-      - lftp
-      - net-snmp
-      - chrony
-      - tigervnc
-      - unrar
-      - lsof
-      - cron
-      - mailx
+    - bc
+    - bind-utils
+    - lftp
+    - net-snmp
+    - chrony
+    - tigervnc
+    - unrar
+    - lsof
+    - cron
+    - mailx
 
   Debian:
-    common:
-      - bc
-      - bsdmainutils
-      - ccze
-      - finger
-      - host
-      - lsscsi
-      - libdate-manip-perl
-      - nmon
-      - ntpdate
-      - python3-pip
-      - screen
-      - snmp
-      - snmpd
+    - bc
+    - bsdmainutils
+    - ccze
+    - finger
+    - host
+    - lsscsi
+    - libdate-manip-perl
+    - nmon
+    # - ntp
+    - ntpdate
+    - python3-pip
+    - screen
+    - snmp
+    - snmpd
 
   Amazon:
     2018:
@@ -124,11 +149,13 @@ packages:
       - perl-LWP-Protocol-https
       - perl-Sys-Syslog
       - screen
+
     2:
       - firewalld
       - procps-ng
       - system-lsb
       - tmux
+
     2023:
       - firewalld
       - procps-ng
