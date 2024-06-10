@@ -79,7 +79,6 @@ packages:
       - python3-libselinux
       - python3-PyMySQL
       - samba-common
-      - policycoreutils-python
     9:
       - initial-setup-gui
       - python3-PyMySQL
