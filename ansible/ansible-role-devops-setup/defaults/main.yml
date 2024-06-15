@@ -1,19 +1,5 @@
----
-base_packages:
-  # Dev tools
-  - build-essential
-  - ffmpeg
-  - gparted
-  - libbz2-dev
-  - libffi-dev
-  - libgdbm-dev
-  - libncurses5-dev
-  - libnss3-dev
-  - libreadline-dev
-  - libsqlite3-dev
-  - libssl-dev
-  - zlib1g-dev
-  # Administration from SO
+# Console Packages for WSL/GNUX Linux
+console_packages:
   - ack
   - at
   - bc
@@ -26,37 +12,17 @@ base_packages:
   - ethtool
   - exfat-fuse
   - expect
-  - filezilla
   - finger
-  - flameshot
-  - fontconfig
-  - gimp
-  - gnome-calendar
-  - gnome-online-accounts
-  - gnome-remote-desktop
-  - gnome-shell-pomodoro
-  - gnupg
-  - google-drive-ocamlfuse
-  - hfsprogs
   - host
   - htop
-  - hunspell-es
   - iftop
   - iotop
-  - keepassxc
-  - libdate-manip-perl
-  - libsox3
-  - libsox-fmt-all
   - links
   - lsb-release
   - lsscsi
   - mlocate
   - netcat
   - net-tools
-  - network-manager-openvpn-gnome
-  - network-manager-openvpn
-  - network-manager-openconnect
-  - network-manager-openconnect-gnome
   - libnfs-utils
   - nmap
   - nmon
@@ -64,17 +30,11 @@ base_packages:
   - ntp
   - ntpdate
   - openssl
-  - obs-studio
   - perl
   - procps
-  - qtbase5-dev
-  - qtwebengine5-dev
   - psmisc
-  - ruby-dev
   - rsync
   - rsyslog
-  - samba
-  - samba-client
   - snmp
   - snmpd
   - sysstat
@@ -86,80 +46,62 @@ base_packages:
   - traceroute
   - tree
   - ubuntu-advantage-tools
-  - vagrant
-  - vorbis-tools
-  - vlc
   - wget
   - whois
-  - xclip
-  - xsel
-  # Compresores
-  - bzip2
-  - p7zip-full
-  - p7zip-rar
-  - rar
-  - unrar
-  - unzip
-  - xfsprogs
-  - zip
-  # Fuentes y Codecs
-  - ideviceinstaller
-  - ifuse
-  - ipheth-utils
-  - libavcodec-extra
-  - mtp-tools
-  - ttf-mscorefonts-installer
-  - ubuntu-restricted-extras
-  # GNS3-server
-  - qemu-kvm
-  - libvirt-daemon-system
-  - libvirt-clients
-  - bridge-utils
+  - vim
 
-packages:
-  # Automation Package
+# Administration Packages
+admin_packages_gui:
+  - build-essential
+  - ffmpeg
+  - gparted
+  - libbz2-dev
+  - libffi-dev
+  - libgdbm-dev
+  - libncurses5-dev
+  - libnss3-dev
+  - libreadline-dev
+  - libsqlite3-dev
+  - libssl-dev
+  - zlib1g-dev
+  - qtbase5-dev
+  - qtwebengine5-dev
+  - ruby-dev
+
+# Command Line Tools
+app_dev_con:
   - apt-transport-https
   - azure-cli
-  - code
   - cpanminus
-  - docker-ce
-  - docker-ce-cli
-  - containerd.io
-  - docker-buildx-plugin
-  - docker-compose-plugin
   - exa
   - fd-find
   - fzf
   - gem
   - gh
   - git
-  - hfsplus
-  - hfsutils
   - jq
   - lua5.4
   - lua-nvim
   - ninja-build
-  - microsoft-edge-stable
   - nodejs
+  - peco
   - python3-packaging
   - python3-pip
   - python3-setuptools
   - python3-venv
   - ripgrep
   - ruby
-  - software-properties-common
   - vault
-  - vim
-  - virtualbox-7.0
-  # Tools
-  - peco
 
-snap_packages:
-  - node
-  - nvim
-  - go
-  - teams-for-linux
+# Fisher Packages
+fisher_packages:
+  - jethrokuan/z
 
+# NPM Packages that require sudo
+npm_packages_sudo:
+  - neovim
+
+# NPM Packages
 npm_packages:
   - "@fsouza/prettierd"
   - "eslint_d"
@@ -169,12 +111,7 @@ npm_packages:
   - "@ansible/ansible-language-server"
   - "yarn"
 
-npm_packages_sudo:
-  - neovim
-
-fisher_packages:
-  - jethrokuan/z
-
+# Pip Packages
 pip_packages:
   - jedi
   - "pynvim==0.4.3"
@@ -187,3 +124,24 @@ pip_packages:
   - matplotlib
   - charts
   - paramiko
+
+#### GUI CONSOLE
+app_dev_gui:
+  - code
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+  - hfsplus
+  - hfsutils
+  - microsoft-edge-stable
+  - software-properties-common
+  - virtualbox-7.0
+
+# Snap Packages
+snap_packages:
+  - node
+  - nvim
+  - go
+  - teams-for-linux
