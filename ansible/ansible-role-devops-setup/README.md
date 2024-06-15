@@ -5,20 +5,17 @@
 [![Repository License](https://img.shields.io/badge/license-GPL%20v3.0-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Ansible CII Best Practices certification](https://bestpractices.coreinfrastructure.org/projects/2372/badge)](https://bestpractices.coreinfrastructure.org/projects/2372)
 
-# Configure the laptop and pc for program the environment developer
+# Configurar una laptop para un entorno devops
 
 ### Motivo
 
-Cada vez que me facilitan una maquina debo configurar mi entorno de escritorio para desarrollar tecnologías en devops, esto no es seguido, pero entiendase
-que configurar todo tu equipo toma al menos unas cuantas horas por ende decidí crear un playbook que me permita configurar mi equipo con todo lo que necesito.
+Cada vez que me facilitan una maquina debo configurar mi entorno de escritorio para desarrollar tecnologías en devops, esto no es seguido, pero entiendase que configurar todo tu equipo toma al menos unas cuantas horas por ende decidí crear un playbook que me permita configurar mi equipo con todo lo que necesito, soportado tanto para wsl como para Ubuntu Desktop
 
 ### Requisitos previos
 
-    - Realizar un backup de tu escritorio
     - Validar tu acceso a internet
-    - En caso de haber generado tus propias llaves privadas/publicas copiarlas en
+    - En caso de haber generado tus propias llaves privadas/publicas copiarlas
       en otro directorio para aposteriori restablecerlas con mv, cp o rsync.
-    - Crear el archivo private.yml dentro del directorio vars
 
 ### Estructura de directorios
 
@@ -75,18 +72,7 @@ b. _install_sw_: Directorio que contiene los roles
      c. _token_pro_ubuntu_: << The token from ubuntu pro, this is free, you register in canonical >>
 
    **Note:** If you prefer, you can leave the values blank, but you must declare the variables as empty.
-
-Example of private.yml
-
-```bash
-cat private.yml
-# %%%%%%%%%%%%%%%% git config %%%%%%%%%%%%%%%%%%%
-git_user_name: '<< user_git >>'
-git_user_email: '<< mail_user >>'
-# %%%%%%%%%%%%%%%% Token pro ubuntu personal %%%%%%%%%%%%%%%%%%%
-token_pro_ubuntu: "<< token_id_pro_ubuntu from ubuntu.com >>"
 ```
-
 6. defaults: Contiene la configuración por defecto para el ansible.
 
 # Alcance
@@ -100,7 +86,7 @@ Para poder tener a disponibilidad todos los paquetes se debe instalar el SO ubun
 
 a. [Instalar Ubuntu destkop](https://www.youtube.com/watch?v=8MRibUo9VAA)
 
-b. Instalar ansible, puedes instalar el script que se ubica en files/intall_prerequisites.sh o ejecutar paso por paso
+b. Instalar ansible, lo puedes realizar con el siguiente script que se ubica en files/intall_prerequisites.sh o ejecutar paso por paso
 
 ```shell
 sudo apt update --force-yes
