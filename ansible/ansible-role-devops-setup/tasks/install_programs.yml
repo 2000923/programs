@@ -11,13 +11,16 @@
   ansible.builtin.pause:
     minutes: 2
 
-- name: Install packages extras
+- name: Install packages for wsl/Linux
   ansible.builtin.apt:
     name: "{{ item }}"
     state: present
   loop:
-    - "{{ base_packages }}"
-    - "{{ packages }}"
+    - "{{ console_packages }}"
+    - "{{ app_dev_con 'wls' }}"
+    - "{{ admin_packages_gui if ansible_virtualization_type != 'wls' }}"
+    - "{{ admin_dev_gui if ansible_virtualization_type != 'wls' }}"
+    - "{{ admin_snap_packages if ansible_virtualization_type != 'wls' }}"
 
 - name: Download packages to tmp directory
   ansible.builtin.include_tasks:
