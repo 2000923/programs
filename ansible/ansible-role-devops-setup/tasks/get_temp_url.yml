@@ -11,46 +11,6 @@
     dest: /tmp/
     remote_src: true
 
-- name: Download discord deb
-  ansible.builtin.get_url:
-    url: "{{ discord_url }}"
-    dest: /tmp/discord.deb
-    mode: "0755"
-
-- name: Download clipgrab deb
-  ansible.builtin.get_url:
-    url: "{{ clipgrab_url }}"
-    dest: /tmp/
-    mode: "0755"
-  register: clipgrab_file
-
-- name: Unarchive for file Download
-  ansible.builtin.unarchive:
-    src: "{{ clipgrab_file.dest }}"
-    dest: /opt
-    owner: "{{ os_user }}"
-    group: users
-    mode: "755"
-    remote_src: true
-
-- name: Define new value
-  ansible.builtin.set_fact:
-    clipgrab_file: "{{ clipgrab_file.dest | regex_replace('\\.tar\\.gz','') | regex_replace('\\/.*\\/','') }}"
-
-- name: Change name directory
-  ansible.builtin.command:
-    cmd: mv -v {{ clipgrab_file }} clipgrab
-  register: mv_clipgrab
-  changed_when: mv_clipgrab.rc != 0
-  args:
-    chdir: /opt
-
-- name: Download the inkdrop in my own pc
-  ansible.builtin.get_url:
-    url: "https://api.inkdrop.app/download/linux/deb"
-    dest: /tmp/inkdrop.deb
-    mode: "0644"
-
 - name: Download fzf from repository
   ansible.builtin.git:
     repo: https://github.com/junegunn/fzf.git
@@ -68,50 +28,82 @@
     single_branch: true
     version: master
 
-- name: Configure Virtualbox for extensions
-  ansible.builtin.shell: |
-    set -o pipefail
-    vboxmanage -v|grep --color -Eo "([[:digit:]]\.?)+"|head -n 1
-  register: extension_vb
-  changed_when: extension_vb.rc != 0
-  args:
-    executable: /bin/bash
-
-- name: Download extension for repository
-  ansible.builtin.get_url:
-    url: "{{ virtualbox_extension_url }}"
-    dest: /tmp/Oracle_VM_VirtualBox_Extension_Pack-{{ extension_vb.stdout }}.vbox-extpack
-    mode: "0644"
-
 - name: Download docker-compose
   ansible.builtin.get_url:
     url: "{{ docker_compose_url }}"
     dest: /usr/local/bin/docker-compose
     mode: "755"
 
-- name: Download the draw.io
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      curl -s {{ get_url_drawio }} | grep browser_download_url  | grep -E 'amd64.*deb' | cut -d ":" -f 2-|tr -d "\""
-  register: set_drawio
-  changed_when: set_drawio.rc != 0
-  args:
-    executable: /bin/bash
+- name: Install programs DEB Extras for GUI desktop
+  when: ansible_virtualization_type != "container"
+  block:
+    - name: Download discord deb
+      ansible.builtin.get_url:
+        url: "{{ discord_url }}"
+        dest: /tmp/discord.deb
+        mode: "0755"
 
-- name: Download file deb for draw.io
-  ansible.builtin.get_url:
-    url: "{{ set_drawio.stdout }}"
-    dest: /tmp/drawio.deb
-    mode: "0644"
-# - name: Download thunderbird to ubuntu
-#   ansible.builtin.get_url:
-#     url: "{{ thunderbird_url }}"
-#     dest: /tmp/thunderbird.tar.gz
-#     mode: '0644'
-#
-# - name: Download the app to desktop in ubuntu
-#   ansible.builtin.get_url:
-#     url: "{{ thun_desktop_url }}"
-#     dest: /usr/share/applications
-#     mode: '0644'
+    - name: Download clipgrab deb
+      ansible.builtin.get_url:
+        url: "{{ clipgrab_url }}"
+        dest: /tmp/
+        mode: "0755"
+      register: clipgrab_file
+
+    - name: Unarchive for file Download
+      ansible.builtin.unarchive:
+        src: "{{ clipgrab_file.dest }}"
+        dest: /opt
+        owner: "{{ os_user }}"
+        group: users
+        mode: "755"
+        remote_src: true
+
+    - name: Define new value
+      ansible.builtin.set_fact:
+        clipgrab_file: "{{ clipgrab_file.dest | regex_replace('\\.tar\\.gz','') | regex_replace('\\/.*\\/','') }}"
+
+    - name: Change name directory
+      ansible.builtin.command:
+        cmd: mv -v {{ clipgrab_file }} clipgrab
+      register: mv_clipgrab
+      changed_when: mv_clipgrab.rc != 0
+      args:
+        chdir: /opt
+
+    - name: Download the inkdrop in my own pc
+      ansible.builtin.get_url:
+        url: "https://api.inkdrop.app/download/linux/deb"
+        dest: /tmp/inkdrop.deb
+        mode: "0644"
+
+    - name: Configure Virtualbox for extensions
+      ansible.builtin.shell: |
+        set -o pipefail
+        vboxmanage -v|grep --color -Eo "([[:digit:]]\.?)+"|head -n 1
+      register: extension_vb
+      changed_when: extension_vb.rc != 0
+      args:
+        executable: /bin/bash
+
+    - name: Download extension for repository
+      ansible.builtin.get_url:
+        url: "{{ virtualbox_extension_url }}"
+        dest: /tmp/Oracle_VM_VirtualBox_Extension_Pack-{{ extension_vb.stdout }}.vbox-extpack
+        mode: "0644"
+
+    - name: Download the draw.io
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          curl -s {{ get_url_drawio }} | grep browser_download_url  | grep -E 'amd64.*deb' | cut -d ":" -f 2-|tr -d "\""
+      register: set_drawio
+      changed_when: set_drawio.rc != 0
+      args:
+        executable: /bin/bash
+
+    - name: Download file deb for draw.io
+      ansible.builtin.get_url:
+        url: "{{ set_drawio.stdout }}"
+        dest: /tmp/drawio.deb
+        mode: "0644"
