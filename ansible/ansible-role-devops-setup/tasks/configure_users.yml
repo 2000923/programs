@@ -53,12 +53,19 @@
         update: false
         version: main
 
+    - name: Validate if existes .config
+      ansible.builtin.file:
+        path: ~/.config
+        state: directory
+        mode: "0755"
+
     - name: Copy the directories from remote server
       ansible.builtin.copy:
         src: /tmp/ansible-examples/.config/
         dest: ~/.config/.
         mode: "0755"
-        remote_src: "{{ true if local is not defined else false }}"
+        remote_src: true
+        #remote_src: "{{ true if local is not defined else false }}"
 
     - name: Clone a repo the packer nvim in my local
       ansible.builtin.git:
