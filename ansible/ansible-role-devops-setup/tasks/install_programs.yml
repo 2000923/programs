@@ -19,14 +19,16 @@
     - "{{ console_packages }}"
     - "{{ app_dev_con }}"
 
-- name: Install packages when ansible_virtualization_type is not container
+- name: Install packages for wsl/linux not container
   when: ansible_virtualization_type != "container"
-  ansible.builtin.package:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - "{{ admin_packages_gui }}"
-    - "{{ app_dev_gui }}"
+  block:
+    - name: "Install packages"
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - "{{ admin_packages_gui }}"
+        - "{{ app_dev_gui }}"
 
 - name: Download packages to tmp directory
   ansible.builtin.include_tasks:
@@ -34,10 +36,86 @@
 
 - name: Install deb packages
   when: ansible_virtualization_type != "container"
-  ansible.builtin.apt:
-    deb: "{{ item.package }}"
-    state: present
-  loop: "{{ url_deb }}"
+  block:
+    - name: Install deb packages for url
+      ansible.builtin.apt:
+        deb: "{{ item.package }}"
+        state: present
+      loop: "{{ url_deb }}"
+
+    - name: Install discord new version
+      ansible.builtin.apt:
+        deb: /tmp/discord.deb
+        state: present
+
+    - name: Install drawio new
+      ansible.builtin.apt:
+        deb: /tmp/drawio.deb
+        state: present
+
+    - name: Install packages from snap
+      community.general.snap:
+        name: "{{ item }}"
+        state: present
+        classic: true
+      loop: "{{ snap_packages }}"
+
+    - name: Install the inkdrop deb in the pc
+      when: ansible_virtualization_type != "container"
+      ansible.builtin.apt:
+        deb: /tmp/inkdrop.deb
+
+    # %%%%%%%%%%%%%%%%%%%%%%%%%%% Install clipgrab %%%%%%%%%%%%%%%%%%%%%%%%%
+
+    - name: Compile Clipgrab
+      ansible.builtin.command:
+        cmd: qmake clipgrab.pro
+      register: cg_pro_compile
+      changed_when: cg_pro_compile.rc != 0
+      args:
+        chdir: /opt/clipgrab
+
+    - name: Make the object clipgrab
+      when:
+        - cg_pro_compile.rc == 0
+        - ansible_virtualization_type != "container"
+      ansible.builtin.command:
+        cmd: make
+      register: make_clipgrab
+      changed_when: make_clipgrab.rc != 0
+      args:
+        chdir: /opt/clipgrab
+
+    - name: Link to clipgrab for /usr/local/bin
+      when: ansible_virtualization_type != "container"
+      ansible.builtin.file:
+        src: /opt/clipgrab/clipgrab
+        dest: /usr/local/bin/clipgrab
+        owner: root
+        group: root
+        mode: "0755"
+        state: link
+
+    - name: Install extension pack from local
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          echo y | VBoxManage extpack install /tmp/Oracle_VM_VirtualBox_Extension_Pack-{{ extension_vb.stdout }}.vbox-extpack
+      register: vbox_extension
+      changed_when: vbox_extension.rc != 0
+      args:
+        executable: /bin/bash
+
+    - name: Configure GNS3 server
+      ansible.builtin.shell: |
+        set -o pipefail
+        usermod -aG kvm "{{ os_users }}"
+        usermod -aG libvirt "{{ os_users }}"
+      register: gns3_group
+      changed_when: gns3_group.rc != 0
+      become: true
+      args:
+        executable: /bin/bash
 
 - name: Install binary script aws
   ansible.builtin.command: ./aws/install
@@ -48,31 +126,6 @@
     executable: /bin/bash
   ignore_errors: true
 
-- name: Install discord new version
-  when: ansible_virtualization_type != "container"
-  ansible.builtin.apt:
-    deb: /tmp/discord.deb
-    state: present
-
-- name: Install drawio new
-  when: ansible_virtualization_type != "container"
-  ansible.builtin.apt:
-    deb: /tmp/drawio.deb
-    state: present
-
-- name: Install packages from snap
-  when: ansible_virtualization_type != "container"
-  community.general.snap:
-    name: "{{ item }}"
-    state: present
-    classic: true
-  loop: "{{ snap_packages }}"
-
-- name: Install the inkdrop deb in the pc
-  when: ansible_virtualization_type != "container"
-  ansible.builtin.apt:
-    deb: /tmp/inkdrop.deb
-
 - name: Run install script for fzf
   ansible.builtin.shell:
     cmd: |
@@ -82,38 +135,6 @@
   changed_when: fzf_download.rc != 0
   args:
     executable: /bin/bash
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%% Install clipgrab %%%%%%%%%%%%%%%%%%%%%%%%%
-
-- name: Compile Clipgrab
-  when: ansible_virtualization_type != "container"
-  ansible.builtin.command:
-    cmd: qmake clipgrab.pro
-  register: cg_pro_compile
-  changed_when: cg_pro_compile.rc != 0
-  args:
-    chdir: /opt/clipgrab
-
-- name: Make the object clipgrab
-  when:
-    - cg_pro_compile.rc == 0
-    - ansible_virtualization_type != "container"
-  ansible.builtin.command:
-    cmd: make
-  register: make_clipgrab
-  changed_when: make_clipgrab.rc != 0
-  args:
-    chdir: /opt/clipgrab
-
-- name: Link to clipgrab for /usr/local/bin
-  when: ansible_virtualization_type != "container"
-  ansible.builtin.file:
-    src: /opt/clipgrab/clipgrab
-    dest: /usr/local/bin/clipgrab
-    owner: root
-    group: root
-    mode: "0755"
-    state: link
 
 - name: Install plugins for nvim with sudo
   community.general.npm:
@@ -137,26 +158,3 @@
   changed_when: cpan_neovim.rc != 0
   args:
     executable: /usr/bin/fish
-
-- name: Install extension pack from local
-  when: ansible_virtualization_type != "container"
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      echo y | VBoxManage extpack install /tmp/Oracle_VM_VirtualBox_Extension_Pack-{{ extension_vb.stdout }}.vbox-extpack
-  register: vbox_extension
-  changed_when: vbox_extension.rc != 0
-  args:
-    executable: /bin/bash
-
-- name: Configure GNS3 server
-  when: ansible_virtualization_type != "container"
-  ansible.builtin.shell: |
-    set -o pipefail
-    usermod -aG kvm "{{ os_users }}"
-    usermod -aG libvirt "{{ os_users }}"
-  register: gns3_group
-  changed_when: gns3_group.rc != 0
-  become: true
-  args:
-    executable: /bin/bash
