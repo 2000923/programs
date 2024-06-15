@@ -33,6 +33,7 @@
     file: get_temp_url.yml
 
 - name: Install deb packages
+  when: ansible_virtualization_type != "container"
   ansible.builtin.apt:
     deb: "{{ item.package }}"
     state: present
@@ -48,16 +49,19 @@
   ignore_errors: true
 
 - name: Install discord new version
+  when: ansible_virtualization_type != "container"
   ansible.builtin.apt:
     deb: /tmp/discord.deb
     state: present
 
 - name: Install drawio new
+  when: ansible_virtualization_type != "container"
   ansible.builtin.apt:
     deb: /tmp/drawio.deb
     state: present
 
 - name: Install packages from snap
+  when: ansible_virtualization_type != "container"
   community.general.snap:
     name: "{{ item }}"
     state: present
@@ -65,6 +69,7 @@
   loop: "{{ snap_packages }}"
 
 - name: Install the inkdrop deb in the pc
+  when: ansible_virtualization_type != "container"
   ansible.builtin.apt:
     deb: /tmp/inkdrop.deb
 
@@ -81,6 +86,7 @@
 # %%%%%%%%%%%%%%%%%%%%%%%%%%% Install clipgrab %%%%%%%%%%%%%%%%%%%%%%%%%
 
 - name: Compile Clipgrab
+  when: ansible_virtualization_type != "container"
   ansible.builtin.command:
     cmd: qmake clipgrab.pro
   register: cg_pro_compile
@@ -89,7 +95,9 @@
     chdir: /opt/clipgrab
 
 - name: Make the object clipgrab
-  when: cg_pro_compile.rc == 0
+  when:
+    - cg_pro_compile.rc == 0
+    - ansible_virtualization_type != "container"
   ansible.builtin.command:
     cmd: make
   register: make_clipgrab
@@ -98,6 +106,7 @@
     chdir: /opt/clipgrab
 
 - name: Link to clipgrab for /usr/local/bin
+  when: ansible_virtualization_type != "container"
   ansible.builtin.file:
     src: /opt/clipgrab/clipgrab
     dest: /usr/local/bin/clipgrab
@@ -130,6 +139,7 @@
     executable: /usr/bin/fish
 
 - name: Install extension pack from local
+  when: ansible_virtualization_type != "container"
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
@@ -140,6 +150,7 @@
     executable: /bin/bash
 
 - name: Configure GNS3 server
+  when: ansible_virtualization_type != "container"
   ansible.builtin.shell: |
     set -o pipefail
     usermod -aG kvm "{{ os_users }}"
