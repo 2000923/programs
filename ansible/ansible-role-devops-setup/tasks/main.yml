@@ -3,6 +3,17 @@
   ansible.builtin.include_tasks:
     file: set_values.yml
 
+# Personalice the os with values defect
+- name: Personalice the os
+  when: ansible_virtualization_type != "wls"
+  ansible.builtin.include_tasks:
+    file: personalice_so.yml
+
+# include task to configure repositories
+- name: Configure repositories
+  ansible.builtin.include_tasks:
+    file: configure_repo.yml
+
 # Install Packages for Ubuntu and developer
 - name: Install packages
   ansible.builtin.include_tasks:

@@ -27,7 +27,7 @@
       set -o pipefail
       sudo pro attach "{{ token_pro_ubuntu }}"
   register: token_pro
-  when: token_pro_ubuntu is not null
+  when: token_pro_ubuntu is defined and token_pro_ubuntu != ""
   changed_when: token_pro.rc != 0
   args:
     executable: /bin/bash
