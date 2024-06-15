@@ -17,9 +17,16 @@
   ansible.builtin.set_fact:
     python_program: "{{ find_python.stdout }}"
 
+- name: CMD user show
+  ansible.builtin.shell:
+    cmd: |
+      whoami
+  register: os_user_show
+  changed_when: os_user_show.rc != 0
+
 - name: Capture user from remote server
   ansible.builtin.set_fact:
-    os_user: "{{ ansible_env.SUDO_USER }}"
+    os_user: "{{ ansible_env.SUDO_USER | default(os_user_show.stdout) }}"
 
 - name: Register ubuntu pro for updates
   ansible.builtin.shell:

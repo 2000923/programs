@@ -18,8 +18,15 @@
   loop:
     - "{{ console_packages }}"
     - "{{ app_dev_con }}"
-    - "{{ admin_packages_gui if ansible_virtualization_type != 'container' else default(omit) }}"
-    - "{{ app_dev_gui if ansible_virtualization_type != 'container' else default(omit) }}"
+
+- name: Install packages when ansible_virtualization_type is not container
+  when: ansible_virtualization_type != "container"
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ admin_packages_gui }}"
+    - "{{ app_dev_gui }}"
 
 - name: Download packages to tmp directory
   ansible.builtin.include_tasks:
