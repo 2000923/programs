@@ -5,7 +5,6 @@
 
 # Personalice the os with values defect
 - name: Personalice the os
-  when: ansible_virtualization_type != "container"
   ansible.builtin.include_tasks:
     file: personalice_so.yml
 
