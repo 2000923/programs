@@ -103,7 +103,6 @@ a. [Instalar Ubuntu destkop](https://www.youtube.com/watch?v=8MRibUo9VAA)
 b. Instalar ansible, puedes instalar el script que se ubica en files/intall_prerequisites.sh o ejecutar paso por paso
 
 ```shell
-bash
 sudo apt update --force-yes
 sudo apt install python3 python3-pip curl git ssh sshpass -y
 sudo pip3 install ansible-core
