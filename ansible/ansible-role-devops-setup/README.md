@@ -138,6 +138,7 @@ log_path = /tmp/ansible_log_from_config.log
 become = true
 EOF
 export ANSIBLE_CONFIG="~/data/ansible.cfg"
+sudo echo "${remote_user}    ALL=(ALL)    NOPASSWD: ALL" > /etc/sudoers.d/${remote_user}
 ```
 c. AL finalizar de ejecutar el paso a paso o el script install_prerequisites.sh instalar los modulos de ansible-galaxy
 
@@ -151,7 +152,8 @@ ansible-galaxy collection install ansible.windows
 d. Ejecutar el playbook
 
 ```shell
-ansible-playbook -i inventory site.yml -u <tu usuario> --private-key ~/.ssh/id_rsa
+# El párametro -k es para ingresar la clave de sudo, para omitir este párametro puede añadir su usuario al archivo /etc/sudoers con el contenido "<usuario> ALL=(ALL) NOPASSWD: ALL"
+ansible-playbook -ilocalhost setup_development.yml -k
 ```
 
 ## Observaciones:
