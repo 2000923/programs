@@ -18,9 +18,8 @@
   loop:
     - "{{ console_packages }}"
     - "{{ app_dev_con }}"
-    - "{{ admin_packages_gui if ansible_virtualization_type != 'wls' }}"
-    - "{{ app_dev_gui if ansible_virtualization_type != 'wls' }}"
-    - "{{ snap_packages if ansible_virtualization_type != 'wls' }}"
+    - "{{ admin_packages_gui if ansible_virtualization_type != 'container' else default(omit) }}"
+    - "{{ app_dev_gui if ansible_virtualization_type != 'container' else default(omit) }}"
 
 - name: Download packages to tmp directory
   ansible.builtin.include_tasks:
