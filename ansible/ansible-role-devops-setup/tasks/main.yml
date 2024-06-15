@@ -40,6 +40,7 @@
     - ansible.posix
     - community.general
     - ansible.windows
+    - community.vmware
   args:
     executable: /usr/bin/fish
   environment:

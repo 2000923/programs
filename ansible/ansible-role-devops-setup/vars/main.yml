@@ -13,7 +13,7 @@ fisher_url: "https://raw.githubusercontent.com/jorgebucaran/fisher/main/function
 vscode_url: "https://packages.microsoft.com/repos/vscode"
 edge_url: "https://packages.microsoft.com/repos/edge/"
 virtualbox_extension_url: "https://download.virtualbox.org/virtualbox/7.0.12/Oracle_VM_VirtualBox_Extension_Pack-7.0.12.vbox-extpack"
-get_url_drwaio: "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest"
+get_url_drawio: "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest"
 
 # %%%%%%%%%%%%%%%% deb download %%%%%%%%%%%%%%%%%%%
 url_deb:
