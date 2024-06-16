@@ -145,3 +145,4 @@ snap_packages:
   - nvim
   - go
   - teams-for-linux
+  - yaml-language-server
