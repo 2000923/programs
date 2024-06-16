@@ -140,9 +140,11 @@ app_dev_gui:
   - virtualbox-7.0
 
 # Snap Packages
-snap_packages:
+snap_packages_con:
   - node
   - nvim
   - go
-  - teams-for-linux
   - yaml-language-server
+
+snap_packages_gui:
+  - teams-for-linux

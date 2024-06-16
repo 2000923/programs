@@ -29,6 +29,13 @@
     state: present
   loop: "{{ url_deb_console }}"
 
+- name: Install packages from snap
+  community.general.snap:
+    name: "{{ item }}"
+    state: present
+    classic: true
+  loop: "{{ snap_packages_con }}"
+
 - name: Install packages for wsl/linux not container
   when:
     - ansible_virtualization_type not in ["container", "NA"]
@@ -62,7 +69,7 @@
         name: "{{ item }}"
         state: present
         classic: true
-      loop: "{{ snap_packages }}"
+      loop: "{{ snap_packages_gui }}"
 
     - name: Install the inkdrop deb in the pc
       ansible.builtin.apt:
