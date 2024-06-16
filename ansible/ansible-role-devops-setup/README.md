@@ -82,9 +82,31 @@ b. _install_sw_: Directorio que contiene los roles
 
 ## Procedimiento de instalacion
 
-Para poder tener a disponibilidad todos los paquetes se debe instalar el SO ubuntu en tu maquina (ver video)
+Para poder tener a disponibilidad todos los paquetes se debe instalar el SO ubuntu en tu maquina (ver video):
 
 a. [Instalar Ubuntu destkop](https://www.youtube.com/watch?v=8MRibUo9VAA)
+
+a.1 En caso de trabajar sobre windows con WLS debes asegurarte tener instalado la versión 2.
+
+```PowerShell
+# Verificar la versión actual de WSL
+wsl -l -v
+
+# Habilitar WSL y la plataforma de máquina virtual
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+
+# Descargar e instalar el kernel de WSL 2 desde: https://aka.ms/wsl2kernel
+
+# Establecer WSL 2 como predeterminado
+wsl --set-default-version 2
+
+# Convertir una distribución específica a WSL 2
+wsl --set-version <distro_name> 2
+
+# Verificar la conversión
+wsl -l -v
+```
 
 b. Instalar ansible, lo puedes realizar con el siguiente script que se ubica en files/intall_prerequisites.sh o ejecutar paso por paso
 
