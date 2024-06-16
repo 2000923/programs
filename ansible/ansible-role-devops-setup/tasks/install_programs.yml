@@ -19,8 +19,13 @@
     - "{{ console_packages }}"
     - "{{ app_dev_con }}"
 
+- name: Download packages to tmp directory
+  ansible.builtin.include_tasks:
+    file: get_temp_url.yml
+
 - name: Install packages for wsl/linux not container
-  when: ansible_virtualization_type != "container"
+  when:
+    - ansible_virtualization_type not in ["container", "NA"]
   block:
     - name: "Install packages"
       ansible.builtin.package:
@@ -30,13 +35,6 @@
         - "{{ admin_packages_gui }}"
         - "{{ app_dev_gui }}"
 
-- name: Download packages to tmp directory
-  ansible.builtin.include_tasks:
-    file: get_temp_url.yml
-
-- name: Install deb packages
-  when: ansible_virtualization_type != "container"
-  block:
     - name: Install deb packages for url
       ansible.builtin.apt:
         deb: "{{ item.package }}"
@@ -61,7 +59,6 @@
       loop: "{{ snap_packages }}"
 
     - name: Install the inkdrop deb in the pc
-      when: ansible_virtualization_type != "container"
       ansible.builtin.apt:
         deb: /tmp/inkdrop.deb
 
@@ -78,7 +75,6 @@
     - name: Make the object clipgrab
       when:
         - cg_pro_compile.rc == 0
-        - ansible_virtualization_type != "container"
       ansible.builtin.command:
         cmd: make
       register: make_clipgrab
@@ -87,7 +83,6 @@
         chdir: /opt/clipgrab
 
     - name: Link to clipgrab for /usr/local/bin
-      when: ansible_virtualization_type != "container"
       ansible.builtin.file:
         src: /opt/clipgrab/clipgrab
         dest: /usr/local/bin/clipgrab

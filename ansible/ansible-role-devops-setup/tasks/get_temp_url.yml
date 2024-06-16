@@ -35,7 +35,8 @@
     mode: "755"
 
 - name: Install programs DEB Extras for GUI desktop
-  when: ansible_virtualization_type != "container"
+  when:
+    - ansible_virtualization_type not in ["container", "NA"]
   block:
     - name: Download discord deb
       ansible.builtin.get_url:

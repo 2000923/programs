@@ -102,7 +102,7 @@ if ! grep -Ei "^(LAN|LC_ALL).*" /etc/environment; then
 fi
 # configurar ansible.cfg para el usuario $(whoami)
 remote_user="$(whoami)"
-if [ ! -d ~/data ]; then mkdir ~/data ; fi 
+if [ ! -d ~/data ]; then mkdir ~/data ; fi
 cat > ~/data/ansible.cfg<<EOF
 [defaults]
 host_key_checking = false
@@ -135,7 +135,7 @@ d. Ejecutar el playbook
 
 ```shell
 # El párametro -k es para ingresar la clave de sudo, para omitir este párametro puede añadir su usuario al archivo /etc/sudoers con el contenido "<usuario> ALL=(ALL) NOPASSWD: ALL"
-ansible-playbook -ilocalhost setup_development.yml -k
+ansible-playbook -ilocalhost, setup_development.yml -k
 ```
 
 ## Observaciones:

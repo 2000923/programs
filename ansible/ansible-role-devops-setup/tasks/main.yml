@@ -47,7 +47,8 @@
     path: "/home/{{ os_user }}/.local/bin:{{ ansible_env.PATH }}"
 
 - name: Upgrade SO
-  when: ansible_virtualization_type != "container"
+  when:
+    - ansible_virtualization_type not in ["container", "NA"]
   ansible.builtin.apt:
     name: "*"
     state: latest

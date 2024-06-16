@@ -1,6 +1,7 @@
 #!/bin/bash
 sudo apt update --force-yes
-sudo apt install python3 python3-pip curl git ssh sshpass -y
+sudo apt install python3 python3-pip curl git ssh sshpass openssh-server -y
+sudo service ssh restart
 sudo pip3 install ansible-core
 # crear el directorio .ssh o las llaves private/public en caso de no tenerlas
 mkdir -p ~/.ssh ; if [[ ! -f ~/.ssh/id_rsa && ! -f ~/.ssh/id_rsa.pub ]]; then ssh-keygen -t rsa -b 2048 -N "" -f ~/.ssh/id_rsa; cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys ; fi

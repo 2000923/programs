@@ -220,20 +220,22 @@
         executable: /bin/bash
 
     - name: Install plugins for vagrant
-      when: ansible_virtualization_type != "container"
-      ansible.builtin.command:
-        cmd: vagrant plugin install "{{ vagrant[ansible_distribution].plugin }}"
-      register: vagrant_plugins
-      changed_when: vagrant_plugins.rc != 0
+      when:
+        - ansible_virtualization_type not in ["container", "NA"]
+      block:
+        - name: add plugins for vagrant
+          ansible.builtin.command:
+            cmd: vagrant plugin install "{{ vagrant[ansible_distribution].plugin }}"
+          register: vagrant_plugins
+          changed_when: vagrant_plugins.rc != 0
 
-    - name: Install network vboxnet0 in local
-      when: ansible_virtualization_type != "container"
-      ansible.builtin.shell: |
-        set -o pipefail
-        VBoxManage hostonlyif create
-        VBoxManage hostonlyif ipconfig vboxnet0 --ip=192.168.57.0 --netmask=255.255.255.0
-        VBoxManage dhcpserver modify --network=HostInterfaceNetworking-vboxnet0 --server-ip=192.168.57.100 --netmask=255.255.255.0 --lower-ip=192.168.57.101 --upper-ip=192.168.57.254 --enable
-      register: vbox_hostonly
-      changed_when: vbox_hostonly.rc != 0
-      args:
-        executable: /bin/bash
+        - name: Install network vboxnet0 in local
+          ansible.builtin.shell: |
+            set -o pipefail
+            VBoxManage hostonlyif create
+            VBoxManage hostonlyif ipconfig vboxnet0 --ip=192.168.57.0 --netmask=255.255.255.0
+            VBoxManage dhcpserver modify --network=HostInterfaceNetworking-vboxnet0 --server-ip=192.168.57.100 --netmask=255.255.255.0 --lower-ip=192.168.57.101 --upper-ip=192.168.57.254 --enable
+          register: vbox_hostonly
+          changed_when: vbox_hostonly.rc != 0
+          args:
+            executable: /bin/bash
