@@ -16,15 +16,17 @@ virtualbox_extension_url: "https://download.virtualbox.org/virtualbox/7.0.12/Ora
 get_url_drawio: "https://api.github.com/repos/jgraph/drawio-desktop/releases/latest"
 
 # %%%%%%%%%%%%%%%% deb download %%%%%%%%%%%%%%%%%%%
-url_deb:
-  # %%%% zoom %%%
-  - package: "https://zoom.us/client/latest/zoom_amd64.deb"
-
+url_deb_console:
   # %%%% fish %%%
   - package: "https://launchpad.net/~fish-shell/+archive/ubuntu/release-3/+files/fish_3.6.1-1~jammy_amd64.deb"
 
   # %%% powershell
   - package: "https://packages.microsoft.com/config/ubuntu/{{ os_version }}/packages-microsoft-prod.deb"
+
+  # %%%%%%%%%%%%%%% deb url gui  %%%%%%%%%%%%%%%%%%%%%%%
+url_deb_gui:
+  # %%%% zoom %%%
+  - package: "https://zoom.us/client/latest/zoom_amd64.deb"
 
 # %%%%%%%%%%%%%%%% gpg url key %%%%%%%%%%%%%%%%%%%
 hashicorp_url_gpg: "https://apt.releases.hashicorp.com/gpg"

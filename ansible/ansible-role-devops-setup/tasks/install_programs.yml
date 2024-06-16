@@ -23,6 +23,12 @@
   ansible.builtin.include_tasks:
     file: get_temp_url.yml
 
+- name: Install deb packages for url
+  ansible.builtin.apt:
+    deb: "{{ item.package }}"
+    state: present
+  loop: "{{ url_deb_console }}"
+
 - name: Install packages for wsl/linux not container
   when:
     - ansible_virtualization_type not in ["container", "NA"]
@@ -39,7 +45,7 @@
       ansible.builtin.apt:
         deb: "{{ item.package }}"
         state: present
-      loop: "{{ url_deb }}"
+      loop: "{{ url_deb_gui }}"
 
     - name: Install discord new version
       ansible.builtin.apt:
