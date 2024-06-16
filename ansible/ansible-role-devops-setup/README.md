@@ -5,17 +5,22 @@
 [![Repository License](https://img.shields.io/badge/license-GPL%20v3.0-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Ansible CII Best Practices certification](https://bestpractices.coreinfrastructure.org/projects/2372/badge)](https://bestpractices.coreinfrastructure.org/projects/2372)
 
-# Configurar una laptop para un entorno devops
+# Configurar una laptop/Pc de escritorio para un entorno devops
 
-### Motivo
+### Problema
 
-Cada vez que me facilitan una maquina debo configurar mi entorno de escritorio para desarrollar tecnologías en devops, esto no es seguido, pero entiendase que configurar todo tu equipo toma al menos unas cuantas horas por ende decidí crear un playbook que me permita configurar mi equipo con todo lo que necesito, soportado tanto para wsl como para Ubuntu Desktop
+Cada vez que formateo una maquina debo configurar mi entorno de escritorio para desarrollar tecnologías en devops,
+esto no es seguido, pero entiendase que configurar todo tu equipo toma al menos unas cuantas horas por ende decidí
+crear un playbook que me permita configurar mi equipo con todo lo que necesito, soportado tanto para wsl como para
+
+- Ubuntu/Xubuntu Desktop
+- Ubuntu/Xubuntu por vagrant
+- Windows con WSL 2.0
 
 ### Requisitos previos
 
-    - Validar tu acceso a internet
-    - En caso de haber generado tus propias llaves privadas/publicas copiarlas
-      en otro directorio para aposteriori restablecerlas con mv, cp o rsync.
+    - Validar tu acceso a internet para la descarga de paquetes
+    - En caso de haber generado tus propias llaves privadas/publicas sacarlas backup
 
 ### Estructura de directorios
 
@@ -61,17 +66,7 @@ b. _install_sw_: Directorio que contiene los roles
 
 4. templates: Plantillas donde se configura los archivos jinja2 donde se personaliza el entorno a configurar
 
-5. vars: Define the values from project with urls of packages and user's configuration
-
-   - The private_yml file is encrypted because it contains sensitive information, such as passwords. This makes it useful for securely declaring and storing confidential values.
-
-     a. _git_user_name_: << you user account in [github](https://github.com)>>
-
-     b. _git_user_email_: << you email account register in github or personal email >>
-
-     c. _token_pro_ubuntu_: << The token from ubuntu pro, this is free, you register in canonical >>
-
-   **Note:** If you prefer, you can leave the values blank, but you must declare the variables as empty.
+5. vars: Define las variables de nuestro proyecto con las url de los pquetes y configuración de usuario.
 
 6. defaults: Contiene la configuración por defecto para el ansible.
 
@@ -79,19 +74,22 @@ b. _install_sw_: Directorio que contiene los roles
 
 - **[Ubuntu 22.04](https://www.ubuntu.com)**
 - **[Xubuntu 22.04](https://xubuntu.org/)**
+- **[WSL Ubuntu](https://learn.microsoft.com/en-us/windows/wsl/about)**
 
 ## Procedimiento de instalacion
 
-Para poder tener a disponibilidad todos los paquetes se debe instalar el SO ubuntu en tu maquina (ver video):
+Para comenzar debes poder tener un SO ubuntu/xubuntu en tu maquina (ver video):
 
 a. [Instalar Ubuntu destkop](https://www.youtube.com/watch?v=8MRibUo9VAA)
 
-a.1 En caso de trabajar sobre windows con WLS debes asegurarte tener instalado la versión 2.
+    a.1 En caso de trabajar sobre windows con WLS debes asegurarte tener instalado la versión 2, te adjunto
+        el procedimiento de validación e instalación
 
 ```PowerShell
 # Verificar la versión actual de WSL
 wsl -l -v
 
+# En caso de tener la versión 1, continuar:
 # Habilitar WSL y la plataforma de máquina virtual
 dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
 dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
