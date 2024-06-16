@@ -47,14 +47,14 @@
     path: "/home/{{ os_user }}/.local/bin:{{ ansible_env.PATH }}"
 
 - name: Upgrade SO
+  when: ansible_virtualization_type != "container"
   ansible.builtin.apt:
     name: "*"
     state: latest
   notify: Reboot server before update
-
-- name: Remove files
-  ansible.builtin.file:
-    path: /etc/apt/source.list.d/{{ item }}
-    state: absent
-  loop:
-    - packages_microsoft_com_repos_edge.list
+# - name: Remove files
+#   ansible.builtin.file:
+#     path: /etc/apt/source.list.d/{{ item }}
+#     state: absent
+#   loop:
+#     - packages_microsoft_com_repos_edge.list

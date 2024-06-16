@@ -220,12 +220,14 @@
         executable: /bin/bash
 
     - name: Install plugins for vagrant
+      when: ansible_virtualization_type != "container"
       ansible.builtin.command:
         cmd: vagrant plugin install "{{ vagrant[ansible_distribution].plugin }}"
       register: vagrant_plugins
       changed_when: vagrant_plugins.rc != 0
 
     - name: Install network vboxnet0 in local
+      when: ansible_virtualization_type != "container"
       ansible.builtin.shell: |
         set -o pipefail
         VBoxManage hostonlyif create
