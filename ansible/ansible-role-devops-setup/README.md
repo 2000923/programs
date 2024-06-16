@@ -72,7 +72,7 @@ b. _install_sw_: Directorio que contiene los roles
      c. _token_pro_ubuntu_: << The token from ubuntu pro, this is free, you register in canonical >>
 
    **Note:** If you prefer, you can leave the values blank, but you must declare the variables as empty.
-```
+
 6. defaults: Contiene la configuración por defecto para el ansible.
 
 # Alcance
@@ -124,11 +124,7 @@ log_path = /tmp/ansible_log_from_config.log
 become = true
 EOF
 export ANSIBLE_CONFIG="~/data/ansible.cfg"
-sudo echo "${remote_user}    ALL=(ALL)    NOPASSWD: ALL" > /etc/sudoers.d/${remote_user}
-```
-c. AL finalizar de ejecutar el paso a paso o el script install_prerequisites.sh instalar los modulos de ansible-galaxy
-
-```shell
+# AL finalizar de ejecutar el paso a paso o el script install_prerequisites.sh instalar los modulos de ansible-galaxy
 ansible-galaxy collection install community.general
 ansible-galaxy collection install community.vmware
 ansible-galaxy collection install ansible.posix
