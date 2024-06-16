@@ -154,6 +154,19 @@ ansible-galaxy collection install ansible.windows
 ```
 
 d. Ejecutar el playbook
+d.1. Debes copiar el proyecto de mi repositorio con el comando
+
+```shell
+    git clone https://github.com/2000923/programs.git
+    cd programs/ansible/
+```
+
+La estructura del directorio del proyecto sería como sigue:
+
+```mermaid
+graph TD
+    programs --> ansible --> setup_development.yml
+```
 
 ```shell
 # El párametro -k es para ingresar la clave de sudo, para omitir este párametro puede añadir su usuario al archivo /etc/sudoers con el contenido "<usuario> ALL=(ALL) NOPASSWD: ALL"
