@@ -20,7 +20,7 @@
 
 - name: Configure firewall in server remote
   when:
-    - ansible_virtualization_type is not ["container", "NA"]
+    - ansible_virtualization_type not in ["container", "NA"]
   ansible.builtin.include_tasks:
     file: configure_firewall.yml
 
